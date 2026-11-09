@@ -30,13 +30,31 @@ export default createGlobalStyle`
     body::before {
         content: '';
         position: fixed;
-        inset: 0;
+        top: 0;
+        left: 0;
+        width: 100%;
+        /* Large-viewport height so the glow still covers the screen while a phone's
+           address bar slides away during scrolling; its own GPU layer avoids repaint tears. */
+        height: 100vh;
+        height: 100lvh;
         z-index: -1;
         pointer-events: none;
+        transform: translateZ(0);
+        will-change: transform;
         background:
             radial-gradient(680px circle at 6% -6%, rgba(99, 102, 241, 0.46), transparent 70%),
             radial-gradient(600px circle at 102% 30%, rgba(34, 211, 238, 0.26), transparent 70%),
             radial-gradient(660px circle at 46% 112%, rgba(168, 85, 247, 0.3), transparent 70%);
+    }
+
+    /* Phones and tablets: blurring the fixed background behind every card while scrolling
+       causes flicker and torn backgrounds on mobile browsers. The background is a soft
+       gradient, so dropping the blur there changes almost nothing visually. */
+    @media (hover: none) and (pointer: coarse), (max-width: 767px) {
+        :root {
+            --glass-blur: none;
+            --glass-bg: rgba(255, 255, 255, 0.06);
+        }
     }
 
     #app {

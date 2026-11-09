@@ -31,6 +31,8 @@ for extra in "$BACKUP".extra-*.tar.gz; do
     [ -f "$extra" ] && tar xzf "$extra" -C "$PANEL"
 done
 rm -f "$PANEL/.glass-zh-new-files" "$PANEL/.glass-zh-backup"
+# Logo folder created by install.sh; removed only when no logo was uploaded.
+rmdir "$PANEL/public/brand" 2>/dev/null || true
 
 OWNER="$(stat -c '%U:%G' "$PANEL/artisan")"
 chown -R "$OWNER" "$PANEL/app" "$PANEL/resources" "$PANEL/routes" "$PANEL/public"
