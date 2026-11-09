@@ -12,12 +12,6 @@
 | **登入頁** | **管理後台總覽** |
 | ![登入頁](docs/screenshots/login.png) | ![管理後台](docs/screenshots/admin-overview.png) |
 
-<p align="center">
-  <img src="docs/screenshots/mobile-dashboard.png" width="220" alt="手機版伺服器列表">
-  <img src="docs/screenshots/mobile-console.png" width="220" alt="手機版主控台">
-  <img src="docs/screenshots/mobile-admin.png" width="220" alt="手機版管理後台">
-</p>
-
 ## 特色
 
 - **深色毛玻璃外觀**：圓形用量儀表、即時波形圖、浮水印圖示、頁面切換動畫
