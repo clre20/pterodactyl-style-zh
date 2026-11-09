@@ -1,0 +1,111 @@
+@extends('layouts.admin')
+@include('partials/admin.settings.nav', ['activeTab' => 'basic'])
+
+@section('title')
+    Settings
+@endsection
+
+@section('content-header')
+    <h1>{{ __('Panel Settings') }}<small>{{ __('Configure Pterodactyl to your liking.') }}</small></h1>
+    <ol class="breadcrumb">
+        <li><a href="{{ route('admin.index') }}">{{ __('Admin') }}</a></li>
+        <li class="active">{{ __('Settings') }}</li>
+    </ol>
+@endsection
+
+@section('content')
+    @yield('settings::nav')
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{ __('Panel Settings') }}</h3>
+                </div>
+                <form action="{{ route('admin.settings') }}" method="POST">
+                    <div class="box-body">
+                        <div class="row">
+                            <div class="form-group col-md-4">
+                                <label class="control-label">{{ __('Company Name') }}</label>
+                                <div>
+                                    <input type="text" class="form-control" name="app:name" value="{{ old('app:name', config('app.name')) }}" />
+                                    <p class="text-muted"><small>{{ __('This is the name that is used throughout the panel and in emails sent to clients.') }}</small></p>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label class="control-label">{{ __('Require 2-Factor Authentication') }}</label>
+                                <div>
+                                    <div class="btn-group" data-toggle="buttons">
+                                        @php
+                                            $level = old('pterodactyl:auth:2fa_required', config('pterodactyl.auth.2fa_required'));
+                                        @endphp
+                                        <label class="btn btn-primary @if ($level == 0) active @endif">
+                                            <input type="radio" name="pterodactyl:auth:2fa_required" autocomplete="off" value="0" @if ($level == 0) checked @endif> {{ __('Not Required') }}
+                                        </label>
+                                        <label class="btn btn-primary @if ($level == 1) active @endif">
+                                            <input type="radio" name="pterodactyl:auth:2fa_required" autocomplete="off" value="1" @if ($level == 1) checked @endif> {{ __('Admin Only') }}
+                                        </label>
+                                        <label class="btn btn-primary @if ($level == 2) active @endif">
+                                            <input type="radio" name="pterodactyl:auth:2fa_required" autocomplete="off" value="2" @if ($level == 2) checked @endif> {{ __('All Users') }}
+                                        </label>
+                                    </div>
+                                    <p class="text-muted"><small>{{ __('If enabled, any account falling into the selected grouping will be required to have 2-Factor authentication enabled to use the Panel.') }}</small></p>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label class="control-label">{{ __('Default Language') }}</label>
+                                <div>
+                                    <select name="app:locale" class="form-control">
+                                        @foreach($languages as $key => $value)
+                                            <option value="{{ $key }}" @if(config('app.locale') === $key) selected @endif>{{ $value }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p class="text-muted"><small>{{ __('The default language to use when rendering UI components.') }}</small></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer">
+                        {!! csrf_field() !!}
+                        <button type="submit" name="_method" value="PATCH" class="btn btn-sm btn-primary pull-right">{{ __('Save') }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{ __('Logo') }}</h3>
+                </div>
+                <div class="box-body">
+                    @php($currentLogo = \Pterodactyl\Extensions\Themes\Brand::logoUrl())
+                    <div class="glass-logo-row">
+                        <div class="glass-logo-preview">
+                            @if($currentLogo)
+                                <img src="{{ $currentLogo }}" alt="">
+                            @else
+                                <span class="glass-brand-mark" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#0b1020" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18 12 5l8 13"/><path d="M8 13h8"/></svg></span>
+                            @endif
+                        </div>
+                        <div class="glass-logo-actions">
+                            <p class="text-muted small">{{ __('Shown in the navigation bar, on the login page, in the admin area, in emails and as the browser tab icon. Use a square PNG, JPG or WebP image of at least 128 × 128 pixels, up to 2 MB.') }}</p>
+                            <form action="{{ route('admin.settings.branding') }}" method="POST" enctype="multipart/form-data" class="glass-logo-form">
+                                {!! csrf_field() !!}
+                                <input type="file" name="logo" accept="image/png,image/jpeg,image/webp" class="form-control" required>
+                                <button type="submit" class="btn btn-sm btn-primary">{{ __('Upload') }}</button>
+                            </form>
+                            @if($currentLogo)
+                                <form action="{{ route('admin.settings.branding.delete') }}" method="POST" style="margin-top: 10px;">
+                                    {!! csrf_field() !!}
+                                    <input type="hidden" name="_method" value="DELETE">
+                                    <button type="submit" class="btn btn-sm btn-danger">{{ __('Restore default logo') }}</button>
+                                </form>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection

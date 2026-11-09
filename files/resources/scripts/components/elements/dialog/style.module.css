@@ -1,0 +1,52 @@
+.container {
+    @apply flex min-h-full items-center justify-center p-4 text-center;
+}
+
+.panel {
+    @apply relative rounded-2xl max-w-xl w-full mx-auto text-left overflow-hidden;
+    background: rgba(17, 22, 38, 0.86);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    animation: dialog-in 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.title {
+    @apply font-header text-xl font-medium mb-2 text-gray-50 pr-4;
+}
+
+.close_icon {
+    @apply w-5 h-5 group-hover:rotate-90 transition-transform duration-100;
+}
+
+.dialog_icon {
+    @apply flex items-center justify-center w-10 h-10 rounded-full mr-4;
+
+    &.danger {
+        @apply bg-red-500 text-red-50;
+    }
+
+    &.warning {
+        @apply bg-yellow-600 text-yellow-50;
+    }
+
+    &.success {
+        @apply bg-green-600 text-green-50;
+    }
+
+    &.info {
+        @apply bg-primary-500 text-primary-50;
+    }
+}
+
+@keyframes dialog-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}

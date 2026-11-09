@@ -1,0 +1,8 @@
+# Keep Unix line endings so install.sh / restore.sh run on Linux even when the
+# repository is cloned or edited on Windows.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff binary
+*.woff2 binary
