@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Button } from '@/components/elements/button/index';
 import Can from '@/components/elements/Can';
 import { ServerContext } from '@/state/server';
 import { PowerAction } from '@/components/server/console/ServerConsoleContainer';
@@ -50,27 +49,34 @@ export default ({ className }: PowerButtonProps) => {
                 {__('Forcibly stopping a server can lead to data corruption.')}
             </Dialog.Confirm>
             <Can action={'control.start'}>
-                <Button
-                    className={'flex-1 sm:flex-none sm:min-w-[6rem] !bg-none !shadow-none border border-green-400/45 !bg-green-400/15 !text-green-100 hover:!bg-green-400/25'}
+                <button
+                    type={'button'}
+                    className={'power-btn power-start flex-1 sm:flex-none sm:min-w-[6rem]'}
                     disabled={status !== 'offline'}
                     onClick={onButtonClick.bind(this, 'start')}
                 >
                     {__('Start')}
-                </Button>
+                </button>
             </Can>
             <Can action={'control.restart'}>
-                <Button.Text className={'flex-1 sm:flex-none sm:min-w-[6rem]'} disabled={!status} onClick={onButtonClick.bind(this, 'restart')}>
+                <button
+                    type={'button'}
+                    className={'power-btn power-restart flex-1 sm:flex-none sm:min-w-[6rem]'}
+                    disabled={!status || status === 'offline'}
+                    onClick={onButtonClick.bind(this, 'restart')}
+                >
                     {__('Restart')}
-                </Button.Text>
+                </button>
             </Can>
             <Can action={'control.stop'}>
-                <Button.Danger
-                    className={'flex-1 sm:flex-none sm:min-w-[6rem]'}
-                    disabled={status === 'offline'}
+                <button
+                    type={'button'}
+                    className={'power-btn power-stop flex-1 sm:flex-none sm:min-w-[6rem]'}
+                    disabled={!status || status === 'offline'}
                     onClick={onButtonClick.bind(this, killable ? 'kill' : 'stop')}
                 >
                     {killable ? __('Kill') : __('Stop')}
-                </Button.Danger>
+                </button>
             </Can>
         </div>
     );

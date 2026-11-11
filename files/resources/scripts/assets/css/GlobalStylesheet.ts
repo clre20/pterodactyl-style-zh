@@ -212,6 +212,27 @@ export default createGlobalStyle`
         0% { transform: scale(1); opacity: 0.7; }
         80%, 100% { transform: scale(2.8); opacity: 0; }
     }
+    /* Power buttons: a button that can be pressed has colour and a soft glow; one that cannot is flat and dim. */
+    .power-btn {
+        --pc: 148 163 184;
+        display: inline-flex; align-items: center; justify-content: center;
+        padding: 0.5rem 1rem; border-radius: 0.75rem; font-weight: 600; color: rgb(var(--pc));
+        color: color-mix(in srgb, rgb(var(--pc)) 35%, #fff);
+        background: rgb(var(--pc) / 0.16); border: 1px solid rgb(var(--pc) / 0.5);
+        box-shadow: 0 0 18px rgb(var(--pc) / 0.28);
+        transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease, opacity 0.15s ease;
+    }
+    .power-btn:hover:not(:disabled) { background: rgb(var(--pc) / 0.28); box-shadow: 0 0 24px rgb(var(--pc) / 0.45); }
+    .power-btn:active:not(:disabled) { transform: scale(0.97); }
+    .power-btn:focus-visible { outline: 2px solid rgb(var(--pc) / 0.8); outline-offset: 2px; }
+    .power-btn:disabled {
+        cursor: not-allowed; box-shadow: none; opacity: 0.45;
+        background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.1); color: rgba(226, 232, 240, 0.7);
+    }
+    .power-start { --pc: 52 211 153; }
+    .power-restart { --pc: 251 191 36; }
+    .power-stop { --pc: 248 113 113; }
+
     .state-busy {
         position: relative;
         overflow: hidden;

@@ -33,7 +33,7 @@ done
 rm -f "$PANEL/.glass-zh-new-files" "$PANEL/.glass-zh-backup"
 # Backgrounds uploaded through the theme, then the brand folder created by
 # install.sh (kept if a logo is still in it).
-rm -f "$PANEL"/public/brand/login-bg.* "$PANEL"/public/brand/page-bg.*
+rm -f "$PANEL"/public/brand/login-bg* "$PANEL"/public/brand/page-bg*
 rmdir "$PANEL/public/brand" 2>/dev/null || true
 
 OWNER="$(stat -c '%U:%G' "$PANEL/artisan")"

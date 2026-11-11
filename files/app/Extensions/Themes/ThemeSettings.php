@@ -34,7 +34,14 @@ class ThemeSettings
         'announcement_enabled' => '0',
         'announcement_level' => 'info',
         'announcement_text' => '',
+        // With several backgrounds: "random" keeps one per visit, "slideshow" changes every interval.
+        'background_mode' => 'random',
+        'background_interval' => '30',
     ];
+
+    public const BACKGROUND_MODES = ['random', 'slideshow'];
+
+    public const MAX_BACKGROUNDS = 8;
 
     public const ANNOUNCEMENT_LEVELS = ['info', 'success', 'warning', 'danger'];
 
@@ -103,29 +110,63 @@ class ThemeSettings
     }
 
     /**
-     * URL of an uploaded background image, or null when the default glow is used.
+     * Uploaded background images, oldest first, as file name => URL.
      * "login" is shown behind the login card, "page" behind every other page.
+     *
+     * @return array<string, string>
      */
-    public static function backgroundUrl(string $target): ?string
+    public static function backgrounds(string $target): array
     {
-        foreach (self::BACKGROUND_EXTENSIONS as $ext) {
-            $path = public_path("brand/$target-bg.$ext");
-            if (is_file($path)) {
-                return "/brand/$target-bg.$ext?v=" . filemtime($path);
+        $files = [];
+        foreach (glob(public_path("brand/$target-bg*")) ?: [] as $path) {
+            $name = basename($path);
+            // "page-bg.jpg" (one image, as before) or "page-bg-<id>.jpg" (one of several).
+            if (is_file($path) && preg_match('/^' . $target . '-bg(-[a-z0-9]+)?\.(' . implode('|', self::BACKGROUND_EXTENSIONS) . ')$/', $name)) {
+                $files[$name] = filemtime($path);
             }
         }
+        asort($files);
 
-        return null;
+        $urls = [];
+        foreach ($files as $name => $time) {
+            $urls[$name] = "/brand/$name?v=$time";
+        }
+
+        return $urls;
     }
 
-    public static function removeBackground(string $target): void
+    /** The first background, or null when the default glow is used. */
+    public static function backgroundUrl(string $target): ?string
     {
-        foreach (self::BACKGROUND_EXTENSIONS as $ext) {
-            $path = public_path("brand/$target-bg.$ext");
-            if (is_file($path)) {
-                @unlink($path);
+        $all = self::backgrounds($target);
+
+        return $all ? reset($all) : null;
+    }
+
+    /** Removes one background by file name, or all of them. */
+    public static function removeBackground(string $target, ?string $file = null): void
+    {
+        foreach (array_keys(self::backgrounds($target)) as $name) {
+            if ($file === null || $file === $name) {
+                @unlink(public_path("brand/$name"));
             }
         }
+    }
+
+    /**
+     * What the background script needs: the images for both targets and how to rotate them.
+     */
+    public static function backgroundConfig(): array
+    {
+        $all = self::all();
+        $mode = in_array($all['background_mode'], self::BACKGROUND_MODES, true) ? $all['background_mode'] : 'random';
+
+        return [
+            'page' => array_values(self::backgrounds('page')),
+            'login' => array_values(self::backgrounds('login')),
+            'mode' => $mode,
+            'interval' => max(5, min(3600, (int) $all['background_interval'] ?: 30)),
+        ];
     }
 
     /**

@@ -54,7 +54,7 @@ export default () => {
     return (
         <div
             role={announcement.level === 'danger' ? 'alert' : 'status'}
-            className={'glass enter mx-auto mt-3 flex w-full max-w-[1200px] items-start gap-3 rounded-2xl py-3 pl-4 pr-2'}
+            className={'glass enter relative z-10 mx-auto mt-3 flex w-full max-w-[1200px] items-start gap-3 rounded-2xl py-3 pl-4 pr-2'}
             style={{ backgroundImage: `linear-gradient(90deg, ${style.tint}, transparent 70%)` }}
         >
             <FontAwesomeIcon icon={style.icon} className={'mt-1 flex-none'} style={{ color: style.color }} />

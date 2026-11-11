@@ -41,7 +41,7 @@
         <div class="col-sm-6">
             <div class="box">
                 <div class="box-header with-border">
-                    <h3 class="box-title">{{ $variable->name }}</h3>
+                    <h3 class="box-title">{{ __($variable->name) }}</h3>
                 </div>
                 <form action="{{ route('admin.nests.egg.variables.edit', ['egg' => $egg->id, 'variable' => $variable->id]) }}" method="POST">
                     <div class="box-body">

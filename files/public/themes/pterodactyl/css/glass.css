@@ -1877,3 +1877,149 @@ input[type='radio'] {
         display: none;
     }
 }
+
+/* v1.2.1 ------------------------------------------------------------------ */
+/* Brand: a name with spaces must not wrap (it pushed the logo out of the collapsed sidebar). */
+.main-header .logo {
+    overflow: hidden;
+}
+.glass-brand {
+    white-space: nowrap;
+    height: 50px;
+    vertical-align: top;
+}
+@media (min-width: 768px) {
+    .sidebar-mini.sidebar-collapse .main-header .logo {
+        padding: 0;
+        text-align: center;
+    }
+    .sidebar-mini.sidebar-collapse .glass-brand {
+        gap: 0;
+        justify-content: center;
+    }
+    .sidebar-mini.sidebar-collapse .glass-brand > span:last-child {
+        display: none;
+    }
+}
+/* Scrollbars that match the dark theme. */
+html {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.32);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+/* Menus must be readable over whatever is behind them: solid, not glass. */
+.select2-dropdown,
+.select2-container--default .select2-dropdown,
+.dropdown-menu {
+    background: #0f1524 !important;
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    overflow: hidden;
+    z-index: 1060;
+}
+.select2-container--default .select2-results > .select2-results__options {
+    background: transparent;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
+.select2-container--default .select2-results__option,
+.select2-container--default .select2-results__group {
+    background: transparent;
+    color: #dfe4f3;
+    padding: 8px 12px;
+}
+.select2-container--default .select2-results__option[aria-disabled='true'] {
+    color: #6f7890;
+}
+.select2-container--default .select2-results__option[aria-selected='true'] {
+    background: rgba(255, 255, 255, 0.09);
+    color: #fff;
+}
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background: rgb(var(--ac-a) / 0.45);
+    color: #fff;
+}
+.select2-container--default .select2-search--dropdown {
+    padding: 8px;
+    background: transparent;
+}
+.select2-container--default .select2-search--dropdown .select2-search__field {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    border-radius: 8px;
+    color: #fff;
+    padding: 6px 10px;
+    outline: none;
+}
+.select2-container--default .select2-search--dropdown .select2-search__field:focus {
+    border-color: rgb(var(--ac-a-l)) !important;
+}
+select option,
+select optgroup {
+    background: #0f1524;
+    color: #dfe4f3;
+}
+/* Background images (Settings → Appearance) */
+.glass-bg-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+.glass-bg-thumb {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: 12px;
+    border: 1px solid var(--g-border);
+    background: rgba(255, 255, 255, 0.04) center / cover no-repeat;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--g-muted);
+    font-size: 12px;
+}
+.glass-bg-thumb.is-default {
+    background:
+        radial-gradient(120px circle at 0% 100%, rgb(var(--ac-a) / 0.6), transparent 70%),
+        radial-gradient(110px circle at 100% 0%, rgb(var(--ac-b-l) / 0.4), transparent 70%),
+        radial-gradient(100px circle at 55% 120%, rgb(var(--ac-c) / 0.4), transparent 70%), #070b14;
+}
+.glass-bg-thumb form {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    margin: 0;
+}
+.glass-bg-thumb button {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(7, 11, 20, 0.78);
+    color: #fff;
+    line-height: 1;
+    transition: background 0.15s ease;
+}
+.glass-bg-thumb button:hover {
+    background: rgba(239, 68, 68, 0.85);
+}

@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar, faUserFriends } from '@fortawesome/free-solid-svg-icons';
+import { faExchangeAlt, faStar, faUserFriends } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { Server } from '@/api/server/getServer';
-import getServerResourceUsage, { ServerPowerState, ServerStats } from '@/api/server/getServerResourceUsage';
+import { ServerPowerState } from '@/api/server/getServerResourceUsage';
+import { readTrendMetric, saveTrendMetric, TREND_METRICS, TrendMetric, useLiveServer } from '@/lib/liveStats';
 import { bytesToString, ip, mbToBytes } from '@/lib/formatters';
 import GreyRowBox from '@/components/elements/GreyRowBox';
 import Spinner from '@/components/elements/Spinner';
@@ -44,22 +45,11 @@ const Pill = ({
     </span>
 );
 
-const HISTORY_POINTS = 24;
-
-const readHistory = (uuid: string): number[] => {
-    try {
-        const saved = JSON.parse(sessionStorage.getItem(`panel:cpu:${uuid}`) || '[]');
-
-        return Array.isArray(saved) ? saved.filter((v) => typeof v === 'number').slice(-HISTORY_POINTS) : [];
-    } catch (e) {
-        return [];
-    }
-};
-
 /**
- * CPU use over the last few minutes, drawn from the readings this page has already
- * collected. It fills in as the list stays open and survives switching pages.
+ * The chosen metric over the last minute, drawn from the readings this page has collected.
  */
+const MIN_POINTS = 8;
+
 const Sparkline = ({
     values,
     max,
@@ -71,18 +61,19 @@ const Sparkline = ({
     color: string;
     className?: string;
 }) => {
-    if (values.length < 2) {
+    if (!values.length) {
         return <div className={className} aria-hidden />;
     }
 
-    const top = Math.max(max, ...values, 1);
-    const step = 100 / (HISTORY_POINTS - 1);
-    const offset = (HISTORY_POINTS - values.length) * step;
-    const points = values.map((v, i) => `${(offset + i * step).toFixed(1)},${(22 - (v / top) * 20).toFixed(1)}`);
+    // With only a few readings the line is stretched across the width rather than squeezed into a corner.
+    const padded = [...Array(Math.max(0, MIN_POINTS - values.length)).fill(values[0]), ...values];
+    const top = Math.max(max, ...padded, 1);
+    const step = 100 / (padded.length - 1);
+    const points = padded.map((v, i) => `${(i * step).toFixed(1)},${(22 - (v / top) * 20).toFixed(1)}`);
 
     return (
         <svg aria-hidden viewBox={'0 0 100 24'} preserveAspectRatio={'none'} className={className}>
-            <polygon points={`${offset.toFixed(1)},24 ${points.join(' ')} 100,24`} fill={color} opacity={0.14} />
+            <polygon points={`0,24 ${points.join(' ')} 100,24`} fill={color} opacity={0.14} />
             <polyline
                 points={points.join(' ')}
                 fill={'none'}
@@ -121,8 +112,6 @@ const Metric = ({
     </div>
 );
 
-type Timer = ReturnType<typeof setInterval>;
-
 export default ({
     server,
     className,
@@ -139,58 +128,31 @@ export default ({
     pinned?: boolean;
     onTogglePin?: (uuid: string) => void;
 }) => {
-    const interval = useRef<Timer>(null) as React.MutableRefObject<Timer>;
-    const [isSuspended, setIsSuspended] = useState(server.status === 'suspended');
-    const [stats, setStats] = useState<ServerStats | null>(null);
+    const live = useLiveServer(server.uuid);
+    const stats = live?.stats || null;
+    const isSuspended = stats?.isSuspended || server.status === 'suspended';
+    const [metric, setMetric] = useState<TrendMetric>(() => readTrendMetric(server.uuid));
 
     const [players, setPlayers] = useState<{ online: number; max: number } | null>(null);
-    const [history, setHistory] = useState<number[]>(() => readHistory(server.uuid));
     const minecraft = isMinecraftServer(server);
+    const running = stats?.status === 'running';
 
-    const getStats = () =>
-        getServerResourceUsage(server.uuid)
-            .then((data) => {
-                setStats(data);
-                setHistory((previous) => {
-                    const next = [...previous, data.status === 'offline' ? 0 : data.cpuUsagePercent].slice(
-                        -HISTORY_POINTS
-                    );
-                    try {
-                        sessionStorage.setItem(`panel:cpu:${server.uuid}`, JSON.stringify(next));
-                    } catch (e) {
-                        // Storage is unavailable: the line simply starts again on the next visit.
-                    }
-
-                    return next;
-                });
-                // Ask a running Minecraft server how many players are on.
-                if (minecraft && data.status === 'running') {
-                    getMinecraftStatus(server.uuid)
-                        .then((mc) => setPlayers(mc.reachable ? mc.players : null))
-                        .catch(() => setPlayers(null));
-                } else {
-                    setPlayers(null);
-                }
-            })
-            .catch((error) => console.error(error));
-
+    // Ask a running Minecraft server how many players are on. This is slower-moving than usage.
     useEffect(() => {
-        setIsSuspended(stats?.isSuspended || server.status === 'suspended');
-    }, [stats?.isSuspended, server.status]);
+        if (!minecraft || !running) {
+            setPlayers(null);
 
-    useEffect(() => {
-        // Don't waste a HTTP request if there is nothing important to show to the user because
-        // the server is suspended.
-        if (isSuspended || server.isNodeUnderMaintenance) return;
+            return;
+        }
+        const ask = () =>
+            getMinecraftStatus(server.uuid)
+                .then((mc) => setPlayers(mc.reachable ? mc.players : null))
+                .catch(() => setPlayers(null));
+        ask();
+        const timer = setInterval(ask, 20000);
 
-        getStats().then(() => {
-            interval.current = setInterval(() => getStats(), 20000);
-        });
-
-        return () => {
-            interval.current && clearInterval(interval.current);
-        };
-    }, [isSuspended, server.isNodeUnderMaintenance]);
+        return () => clearInterval(timer);
+    }, [minecraft, running]);
 
     useEffect(() => {
         onStatus && onStatus(server.uuid, stats?.status);
@@ -241,7 +203,50 @@ export default ({
     const isUp = !isSuspended && stats?.status === 'running';
 
     const grid = view === 'grid';
-    const sparkMax = server.limits.cpu || 100;
+    const trendMax =
+        metric === 'cpu' ? server.limits.cpu || 100 : metric === 'memory' ? mbToBytes(server.limits.memory) || 1 : 1024;
+    const trendLabel = metric === 'cpu' ? __('CPU') : metric === 'memory' ? __('Memory') : __('Network');
+    const trendValue = !showStats
+        ? '—'
+        : metric === 'cpu'
+        ? `${stats!.cpuUsagePercent.toFixed(1)}%`
+        : metric === 'memory'
+        ? bytesToString(stats!.memoryUsageInBytes)
+        : `${bytesToString(live!.networkRate)}/s`;
+    const nextMetric = () => {
+        const next = TREND_METRICS[(TREND_METRICS.indexOf(metric) + 1) % TREND_METRICS.length];
+        saveTrendMetric(server.uuid, next);
+        setMetric(next);
+    };
+    const trend = (
+        <div className={classNames('relative flex-none', grid ? 'mt-auto w-full' : 'hidden xl:block w-32')}>
+            <button
+                type={'button'}
+                title={__('Change what the line shows')}
+                onClick={(e) => {
+                    // The whole card is a link; this must not open the server.
+                    e.preventDefault();
+                    e.stopPropagation();
+                    nextMetric();
+                }}
+                className={
+                    'relative z-10 flex w-full items-center justify-between gap-2 rounded-md px-1 text-[0.7rem] leading-5 text-neutral-400 transition-colors duration-150 hover:bg-white/10 hover:text-neutral-100'
+                }
+            >
+                <span className={'inline-flex items-center gap-1'}>
+                    <FontAwesomeIcon icon={faExchangeAlt} className={'h-2.5 w-2.5 opacity-70'} />
+                    {trendLabel}
+                </span>
+                <span className={'tabular-nums text-neutral-200'}>{trendValue}</span>
+            </button>
+            <Sparkline
+                values={showStats ? live!.history[metric] : []}
+                max={trendMax}
+                color={look.color}
+                className={classNames('block w-full', grid ? 'h-8' : 'h-6')}
+            />
+        </div>
+    );
 
     return (
         <GreyRowBox
@@ -249,7 +254,7 @@ export default ({
             to={`/server/${server.id}`}
             className={classNames(
                 'group relative overflow-hidden gap-x-5 gap-y-3',
-                grid ? 'flex-col !items-stretch' : 'flex-wrap',
+                grid ? 'h-full flex-col !items-stretch' : 'flex-wrap',
                 isBusy && 'state-busy',
                 className
             )}
@@ -290,7 +295,12 @@ export default ({
                     <FontAwesomeIcon icon={faStar} className={'h-3.5 w-3.5'} />
                 </button>
             )}
-            <div className={classNames('flex min-w-0 items-center gap-4', grid ? 'pr-7' : 'flex-1 min-w-[12rem] pr-7 sm:pr-0')}>
+            <div
+                className={classNames(
+                    'flex min-w-0 items-center gap-4',
+                    grid ? 'pr-7' : 'flex-1 min-w-[12rem] pr-7 sm:pr-0'
+                )}
+            >
                 <div
                     aria-hidden
                     className={'w-12 h-12 flex-none rounded-xl flex items-center justify-center border'}
@@ -331,14 +341,7 @@ export default ({
             {!grid && (
                 <p className={'hidden lg:block w-52 font-mono text-[0.8rem] text-neutral-300 truncate'}>{address}</p>
             )}
-            {!grid && (
-                <Sparkline
-                    values={showStats ? history : []}
-                    max={sparkMax}
-                    color={look.color}
-                    className={'hidden xl:block h-9 w-24 flex-none'}
-                />
-            )}
+            {!grid && trend}
             <div
                 className={classNames(
                     'grid grid-cols-3 gap-4',
@@ -364,14 +367,7 @@ export default ({
                     alarm={alarms.disk}
                 />
             </div>
-            {grid && (
-                <Sparkline
-                    values={showStats ? history : []}
-                    max={sparkMax}
-                    color={look.color}
-                    className={'h-8 w-full'}
-                />
-            )}
+            {grid && trend}
         </GreyRowBox>
     );
 };

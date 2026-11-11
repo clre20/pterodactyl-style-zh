@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useEffect } from 'react';
 import { Form } from 'formik';
 import FlashMessageRender from '@/components/FlashMessageRender';
 import tw from 'twin.macro';
@@ -18,19 +18,16 @@ export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => 
     const name = useStoreState((state: ApplicationStore) => state.settings.data?.name || 'Pterodactyl');
     const recaptcha = useStoreState((state: ApplicationStore) => state.settings.data?.recaptcha.enabled);
 
+    // The login page has its own set of backgrounds (Admin → Settings → Appearance).
+    useEffect(() => {
+        const background = (window as any).GlassBackground;
+        background?.use('login');
+
+        return () => background?.use('page');
+    }, []);
+
     return (
         <div css={tw`relative min-h-screen flex flex-col items-center justify-center px-4 py-20`}>
-            {themeConfig.loginBackground && (
-                // Custom background from Admin → Settings → Appearance, darkened so the card stays readable.
-                <div
-                    aria-hidden
-                    css={tw`fixed inset-0 pointer-events-none bg-cover bg-center`}
-                    style={{
-                        zIndex: -1,
-                        backgroundImage: `linear-gradient(rgba(7, 11, 20, 0.5), rgba(7, 11, 20, 0.82)), url("${themeConfig.loginBackground}")`,
-                    }}
-                />
-            )}
             <div css={tw`absolute top-4 right-4 sm:top-6 sm:right-6`}>
                 <LanguageSwitcher variant={'segmented'} />
             </div>
@@ -64,7 +61,9 @@ export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => 
                     </span>
                     <div css={tw`relative`}>
                         <p css={tw`text-xl md:text-3xl font-bold text-neutral-50 leading-tight`}>{name}</p>
-                        <p css={tw`mt-1 md:mt-2 text-sm text-neutral-400`}>{themeConfig.loginSubtitle || __('Server control panel')}</p>
+                        <p css={tw`mt-1 md:mt-2 text-sm text-neutral-400`}>
+                            {themeConfig.loginSubtitle || __('Server control panel')}
+                        </p>
                     </div>
                 </div>
 

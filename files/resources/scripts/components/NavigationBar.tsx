@@ -49,10 +49,10 @@ export default () => {
 
     return (
         <div className={'relative z-30 w-full px-3 sm:px-4 pt-3 sm:pt-5'}>
-            <SpinnerOverlay visible={isLoggingOut} />
+            <SpinnerOverlay visible={isLoggingOut} fixed />
             <div
                 className={
-                    'glass mx-auto w-full flex flex-wrap items-center justify-between gap-2 min-h-[3.75rem] max-w-[1200px] rounded-2xl pl-4 pr-2 py-2'
+                    'glass relative z-20 mx-auto w-full flex flex-wrap items-center justify-between gap-2 min-h-[3.75rem] max-w-[1200px] rounded-2xl pl-4 pr-2 py-2'
                 }
             >
                 <div id={'logo'} className={'flex-1 min-w-0'}>

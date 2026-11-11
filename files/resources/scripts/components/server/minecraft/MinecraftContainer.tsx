@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
+    faAlignLeft,
     faBan,
     faCrown,
     faCube,
@@ -28,6 +29,7 @@ import saveFileContents from '@/api/server/files/saveFileContents';
 import getMinecraftStatus, { MinecraftStatus } from '@/api/server/getMinecraftStatus';
 import { SocketRequest } from '@/components/server/events';
 import { applyProperties, isValidPlayerName, parseProperties, Properties, propertyFields } from '@/lib/minecraft';
+import http from '@/api/http';
 import { __ } from '@/i18n';
 
 type ListName = 'whitelist' | 'ops' | 'banned';
@@ -63,6 +65,27 @@ const lists: Record<
         empty: 'Nobody is banned.',
     },
 };
+
+const pad = (n: number) => String(n).padStart(2, '0');
+
+/** The date format Minecraft writes into banned-players.json: 2026-01-31 18:05:09 +0800 */
+const banDate = () => {
+    const d = new Date();
+    const offset = -d.getTimezoneOffset();
+    const zone = `${offset < 0 ? '-' : '+'}${pad(Math.floor(Math.abs(offset) / 60))}${pad(Math.abs(offset) % 60)}`;
+
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(
+        d.getMinutes()
+    )}:${pad(d.getSeconds())} ${zone}`;
+};
+
+/** A new row for one of the JSON lists, in the shape the server itself writes. */
+const newRow = (list: ListName, uuid: string, name: string): Record<string, unknown> =>
+    list === 'whitelist'
+        ? { uuid, name }
+        : list === 'ops'
+        ? { uuid, name, level: 4, bypassesPlayerLimit: false }
+        : { uuid, name, created: banDate(), source: 'Panel', expires: 'forever', reason: 'Banned by an operator.' };
 
 const listIcons = { whitelist: faListUl, ops: faCrown, banned: faBan };
 
@@ -110,7 +133,11 @@ export default () => {
     const { addFlash, clearFlashes, clearAndAddHttpError } = useFlash();
 
     const running = status === 'running';
-    const canAct = canCommand && running && connected && !!instance;
+    const stopped = status === 'offline';
+    // Running: changes are console commands. Stopped: the files are edited directly.
+    const canLive = canCommand && running && connected && !!instance;
+    const canFiles = canWrite && canRead && stopped;
+    const canAct = canLive || canFiles;
 
     const [mc, setMc] = useState<MinecraftStatus | null>(null);
     const [tab, setTab] = useState<ListName>('whitelist');
@@ -124,12 +151,22 @@ export default () => {
 
     const [raw, setRaw] = useState<string | null>(null);
     const [missing, setMissing] = useState(false);
-    const [draft, setDraft] = useState<Properties>({});
+    // The working copy of server.properties. The form and the text editor both edit it.
+    const [text, setText] = useState('');
+    const [mode, setMode] = useState<'form' | 'text'>('form');
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
 
     const original = useMemo(() => (raw === null ? {} : parseProperties(raw)), [raw]);
-    const changed = useMemo(() => Object.keys(draft).filter((key) => draft[key] !== original[key]), [draft, original]);
+    const draft: Properties = useMemo(() => parseProperties(text), [text]);
+    const dirty = raw !== null && text !== raw;
+    const changed = useMemo(
+        () =>
+            [...new Set([...Object.keys(draft), ...Object.keys(original)])].filter(
+                (key) => draft[key] !== original[key]
+            ),
+        [draft, original]
+    );
 
     const loadStatus = useCallback(() => {
         if (!running) {
@@ -173,7 +210,7 @@ export default () => {
         getFileContents(uuid, '/server.properties')
             .then((text) => {
                 setRaw(text);
-                setDraft(parseProperties(text));
+                setText(text);
                 setMissing(false);
             })
             .catch(() => setMissing(true));
@@ -193,7 +230,7 @@ export default () => {
     }, [loadStatus]);
 
     const send = (command: string, reload: ListName[] = []) => {
-        if (!canAct || !instance) return;
+        if (!canLive || !instance) return;
         setBusy(true);
         instance.send(SocketRequest.SEND_COMMAND, command);
         // The server rewrites its JSON files as soon as it has handled the command.
@@ -204,39 +241,114 @@ export default () => {
         }, 1400);
     };
 
+    const fail = (message: string) => addFlash({ key: 'minecraft', type: 'error', message });
+
+    /** Reads one of the JSON lists, lets `change` edit it, and writes it back. */
+    const editFile = (list: ListName, change: (rows: any[]) => any[] | null) => {
+        setBusy(true);
+
+        return getFileContents(uuid, lists[list].file)
+            .then((body) => {
+                const data = JSON.parse(body || '[]');
+
+                return Array.isArray(data) ? data : [];
+            })
+            .catch(() => [])
+            .then((rows) => {
+                const next = change(rows);
+
+                return next === null
+                    ? undefined
+                    : saveFileContents(uuid, lists[list].file, JSON.stringify(next, null, 2) + '\n');
+            })
+            .then(() => loadList(list))
+            .catch((error) => clearAndAddHttpError({ key: 'minecraft', error }))
+            .then(() => setBusy(false));
+    };
+
+    const addOffline = (list: ListName, value: string) => {
+        if (/^[.*]/.test(value)) {
+            fail(__('Bedrock players can only be added while the server is running.'));
+
+            return;
+        }
+        setBusy(true);
+        const online = (original['online-mode'] || 'true') !== 'false';
+        http.get(`/api/client/servers/${uuid}/minecraft/profile`, { params: { name: value, online: online ? 1 : 0 } })
+            .then(({ data }) =>
+                editFile(list, (rows) => {
+                    if (rows.some((row) => row && String(row.name).toLowerCase() === data.name.toLowerCase())) {
+                        fail(__('{{name}} is already on this list.', { name: data.name }));
+
+                        return null;
+                    }
+
+                    return [...rows, newRow(list, data.uuid, data.name)];
+                })
+            )
+            .catch((error) => {
+                setBusy(false);
+                const code = error?.response?.status;
+                fail(
+                    code === 404
+                        ? __('There is no Minecraft account named {{name}}.', { name: value })
+                        : __(
+                              'The player could not be looked up right now. Try again, or add them while the server is running.'
+                          )
+                );
+            });
+    };
+
+    const addPlayer = (list: ListName, value: string) =>
+        canLive ? send(lists[list].add(value), [list]) : canFiles && addOffline(list, value);
+
+    const removePlayer = (list: ListName, value: string) =>
+        canLive
+            ? send(lists[list].remove(value), [list])
+            : canFiles &&
+              editFile(list, (rows) =>
+                  rows.filter((row) => !row || String(row.name).toLowerCase() !== value.toLowerCase())
+              );
+
     const submitName = (e: React.FormEvent) => {
         e.preventDefault();
         const value = name.trim();
         clearFlashes('minecraft');
         if (!isValidPlayerName(value)) {
-            addFlash({
-                key: 'minecraft',
-                type: 'error',
-                message: __('Enter a valid player name: 2 to 16 letters, numbers or underscores.'),
-            });
+            fail(__('Enter a valid player name: 2 to 16 letters, numbers or underscores.'));
+
             return;
         }
-        send(lists[tab].add(value), [tab]);
+        addPlayer(tab, value);
         setName('');
     };
 
     const setWhitelist = (on: boolean) => {
-        send(`whitelist ${on ? 'on' : 'off'}`);
-        setDraft((d) => ('white-list' in d ? { ...d, 'white-list': String(on) } : d));
-        setRaw((r) => (r === null ? r : applyProperties(r, { 'white-list': String(on) })));
+        if (canLive) {
+            send(`whitelist ${on ? 'on' : 'off'}`);
+            setText((t) => applyProperties(t, { 'white-list': String(on) }));
+            setRaw((r) => (r === null ? r : applyProperties(r, { 'white-list': String(on) })));
+        } else if (canFiles && raw !== null) {
+            // Only this one key is written, so unsaved edits in the form below are left alone.
+            const next = applyProperties(raw, { 'white-list': String(on) });
+            setBusy(true);
+            saveFileContents(uuid, '/server.properties', next)
+                .then(() => {
+                    setRaw(next);
+                    setText((t) => applyProperties(t, { 'white-list': String(on) }));
+                })
+                .catch((error) => clearAndAddHttpError({ key: 'minecraft', error }))
+                .then(() => setBusy(false));
+        }
     };
 
     const saveProperties = () => {
-        if (raw === null || changed.length === 0) return;
+        if (raw === null || !dirty) return;
         clearFlashes('minecraft');
         setSaving(true);
-        const next = applyProperties(
-            raw,
-            changed.reduce((all, key) => ({ ...all, [key]: draft[key] }), {})
-        );
-        saveFileContents(uuid, '/server.properties', next)
+        saveFileContents(uuid, '/server.properties', text)
             .then(() => {
-                setRaw(next);
+                setRaw(text);
                 setSaved(true);
             })
             .catch((error) => clearAndAddHttpError({ key: 'minecraft', error }))
@@ -245,7 +357,7 @@ export default () => {
 
     const update = (key: string, value: string) => {
         setSaved(false);
-        setDraft((d) => ({ ...d, [key]: value }));
+        setText((t) => applyProperties(t, { [key]: value }));
     };
 
     const current = entries[tab];
@@ -289,7 +401,7 @@ export default () => {
                                         >
                                             <span className={'state-dot live text-green-300'} />
                                             <span className={'min-w-0 flex-1 truncate font-mono'}>{player}</span>
-                                            {canAct && (
+                                            {canLive && (
                                                 <button
                                                     type={'button'}
                                                     className={'text-xs text-neutral-400 hover:text-red-300'}
@@ -337,7 +449,7 @@ export default () => {
                         )}
                     </div>
 
-                    {canCommand && (
+                    {(canCommand || canWrite) && (
                         <form onSubmit={submitName} className={'mb-4 flex gap-2'}>
                             <Input
                                 value={name}
@@ -359,10 +471,23 @@ export default () => {
                             </Button>
                         </form>
                     )}
-                    {canCommand && !running && (
-                        <p className={'mb-4 rounded-xl bg-yellow-400/10 px-3 py-2 text-sm text-yellow-200'}>
-                            {__('Start the server to change these lists. Changes are made with console commands.')}
+                    {canFiles ? (
+                        <p className={'mb-4 rounded-xl bg-white/5 px-3 py-2 text-sm text-neutral-300'}>
+                            {__(
+                                'The server is stopped, so changes are written straight to its files and apply the next time it starts.'
+                            )}
                         </p>
+                    ) : (
+                        !canLive &&
+                        (canCommand || canWrite) && (
+                            <p className={'mb-4 rounded-xl bg-yellow-400/10 px-3 py-2 text-sm text-yellow-200'}>
+                                {stopped || running
+                                    ? __('You do not have permission to change these lists right now.')
+                                    : __(
+                                          'The server is starting or stopping. The lists can be changed once it has finished.'
+                                      )}
+                            </p>
+                        )
                     )}
 
                     {current === null ? (
@@ -386,7 +511,7 @@ export default () => {
                                             </span>
                                         )}
                                     </span>
-                                    {canCommand && (
+                                    {(canCommand || canWrite) && (
                                         <button
                                             type={'button'}
                                             disabled={!canAct || busy}
@@ -394,7 +519,7 @@ export default () => {
                                             aria-label={`${tab === 'banned' ? __('Unban') : __('Remove')} ${
                                                 entry.name
                                             }`}
-                                            onClick={() => send(lists[tab].remove(entry.name), [tab])}
+                                            onClick={() => removePlayer(tab, entry.name)}
                                             className={
                                                 'flex h-7 w-7 flex-none items-center justify-center rounded-lg text-neutral-400 transition-colors duration-150 hover:bg-red-400/15 hover:text-red-300 disabled:opacity-40'
                                             }
@@ -409,7 +534,41 @@ export default () => {
                 </TitledGreyBox>
             </div>
 
-            <TitledGreyBox title={__('Server Settings')} icon={faSlidersH} className={'mt-4'}>
+            <TitledGreyBox
+                className={'mt-4'}
+                title={
+                    <div className={'flex flex-wrap items-center justify-between gap-2'}>
+                        <p className={'text-sm font-semibold text-neutral-100'}>
+                            <FontAwesomeIcon icon={faSlidersH} className={'mr-2 text-neutral-300'} />
+                            {__('Server Settings')}
+                            <span className={'ml-2 font-mono text-xs font-normal text-neutral-400'}>
+                                server.properties
+                            </span>
+                        </p>
+                        {raw !== null && !missing && (
+                            <div role={'group'} className={'flex rounded-lg border border-white/10 bg-black/20 p-0.5'}>
+                                {(['form', 'text'] as const).map((key) => (
+                                    <button
+                                        key={key}
+                                        type={'button'}
+                                        aria-pressed={mode === key}
+                                        onClick={() => setMode(key)}
+                                        className={classNames(
+                                            'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs transition-colors duration-150',
+                                            mode === key
+                                                ? 'bg-white/15 text-neutral-50'
+                                                : 'text-neutral-400 hover:text-neutral-100'
+                                        )}
+                                    >
+                                        <FontAwesomeIcon icon={key === 'form' ? faSlidersH : faAlignLeft} />
+                                        {key === 'form' ? __('Form') : __('Text')}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                }
+            >
                 {missing ? (
                     <EmptyState
                         bare
@@ -423,95 +582,118 @@ export default () => {
                     <SkeletonList rows={4} variant={'file'} />
                 ) : (
                     <>
-                        {propertyFields.map((group) => {
-                            const fields = group.fields.filter((field) => field.key in original);
-                            if (fields.length === 0) return null;
+                        {mode === 'text' && (
+                            <textarea
+                                aria-label={'server.properties'}
+                                value={text}
+                                readOnly={!canWrite}
+                                spellCheck={false}
+                                onChange={(e) => {
+                                    setSaved(false);
+                                    setText(e.currentTarget.value);
+                                }}
+                                className={
+                                    'mb-4 block h-[28rem] w-full resize-y rounded-xl border border-white/10 bg-black/30 p-3 font-mono text-[0.8rem] leading-relaxed text-neutral-100 outline-none focus:border-white/30'
+                                }
+                            />
+                        )}
+                        {mode === 'form' &&
+                            propertyFields.map((group) => {
+                                const fields = group.fields.filter((field) => field.key in original);
+                                if (fields.length === 0) return null;
 
-                            return (
-                                <div key={group.title} className={'mb-6'}>
-                                    <p
-                                        className={
-                                            'mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-400'
-                                        }
-                                    >
-                                        {__(group.title)}
-                                    </p>
-                                    <div className={'grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2'}>
-                                        {fields.map((field) => (
-                                            <div
-                                                key={field.key}
-                                                className={classNames(
-                                                    field.type === 'toggle' && 'flex items-start justify-between gap-4'
-                                                )}
-                                            >
-                                                <div className={'min-w-0'}>
-                                                    <label
-                                                        htmlFor={`mc-${field.key}`}
-                                                        className={'block text-sm font-medium text-neutral-100'}
-                                                    >
-                                                        {__(field.label)}
-                                                    </label>
-                                                    {field.help && (
-                                                        <p
-                                                            className={
-                                                                'mt-0.5 text-xs leading-relaxed text-neutral-400'
-                                                            }
+                                return (
+                                    <div key={group.title} className={'mb-6'}>
+                                        <p
+                                            className={
+                                                'mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-400'
+                                            }
+                                        >
+                                            {__(group.title)}
+                                        </p>
+                                        <div className={'grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2'}>
+                                            {fields.map((field) => (
+                                                <div
+                                                    key={field.key}
+                                                    className={classNames(
+                                                        field.type === 'toggle' &&
+                                                            'flex items-start justify-between gap-4'
+                                                    )}
+                                                >
+                                                    <div className={'min-w-0'}>
+                                                        <label
+                                                            htmlFor={`mc-${field.key}`}
+                                                            className={'block text-sm font-medium text-neutral-100'}
                                                         >
-                                                            {__(field.help)}
-                                                        </p>
+                                                            {__(field.label)}
+                                                        </label>
+                                                        {field.help && (
+                                                            <p
+                                                                className={
+                                                                    'mt-0.5 text-xs leading-relaxed text-neutral-400'
+                                                                }
+                                                            >
+                                                                {__(field.help)}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                    {field.type === 'toggle' ? (
+                                                        <Toggle
+                                                            checked={draft[field.key] === 'true'}
+                                                            onChange={(v) => update(field.key, String(v))}
+                                                            disabled={!canWrite}
+                                                        />
+                                                    ) : field.type === 'select' ? (
+                                                        <Select
+                                                            id={`mc-${field.key}`}
+                                                            className={'mt-1.5'}
+                                                            value={draft[field.key]}
+                                                            disabled={!canWrite}
+                                                            onChange={(e) => update(field.key, e.currentTarget.value)}
+                                                        >
+                                                            {!field.options.some(
+                                                                ([value]) => value === draft[field.key]
+                                                            ) && (
+                                                                <option value={draft[field.key]}>
+                                                                    {draft[field.key]}
+                                                                </option>
+                                                            )}
+                                                            {field.options.map(([value, label]) => (
+                                                                <option key={value} value={value}>
+                                                                    {__(label)}
+                                                                </option>
+                                                            ))}
+                                                        </Select>
+                                                    ) : (
+                                                        <Input
+                                                            id={`mc-${field.key}`}
+                                                            className={'mt-1.5'}
+                                                            type={field.type === 'number' ? 'number' : 'text'}
+                                                            value={draft[field.key] ?? ''}
+                                                            disabled={!canWrite}
+                                                            min={field.type === 'number' ? field.min : undefined}
+                                                            max={field.type === 'number' ? field.max : undefined}
+                                                            maxLength={
+                                                                field.type === 'text' ? field.maxLength : undefined
+                                                            }
+                                                            onChange={(e) => update(field.key, e.currentTarget.value)}
+                                                        />
                                                     )}
                                                 </div>
-                                                {field.type === 'toggle' ? (
-                                                    <Toggle
-                                                        checked={draft[field.key] === 'true'}
-                                                        onChange={(v) => update(field.key, String(v))}
-                                                        disabled={!canWrite}
-                                                    />
-                                                ) : field.type === 'select' ? (
-                                                    <Select
-                                                        id={`mc-${field.key}`}
-                                                        className={'mt-1.5'}
-                                                        value={draft[field.key]}
-                                                        disabled={!canWrite}
-                                                        onChange={(e) => update(field.key, e.currentTarget.value)}
-                                                    >
-                                                        {!field.options.some(
-                                                            ([value]) => value === draft[field.key]
-                                                        ) && (
-                                                            <option value={draft[field.key]}>{draft[field.key]}</option>
-                                                        )}
-                                                        {field.options.map(([value, label]) => (
-                                                            <option key={value} value={value}>
-                                                                {__(label)}
-                                                            </option>
-                                                        ))}
-                                                    </Select>
-                                                ) : (
-                                                    <Input
-                                                        id={`mc-${field.key}`}
-                                                        className={'mt-1.5'}
-                                                        type={field.type === 'number' ? 'number' : 'text'}
-                                                        value={draft[field.key] ?? ''}
-                                                        disabled={!canWrite}
-                                                        min={field.type === 'number' ? field.min : undefined}
-                                                        max={field.type === 'number' ? field.max : undefined}
-                                                        maxLength={field.type === 'text' ? field.maxLength : undefined}
-                                                        onChange={(e) => update(field.key, e.currentTarget.value)}
-                                                    />
-                                                )}
-                                            </div>
-                                        ))}
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            );
-                        })}
+                                );
+                            })}
                         <div className={'flex flex-wrap items-center justify-end gap-3 border-t border-white/5 pt-4'}>
                             <p className={'mr-auto text-sm text-neutral-400'}>
                                 {saved
                                     ? __('Saved. Restart the server for the changes to take effect.')
-                                    : changed.length > 0
-                                    ? __('{{n}} unsaved changes', { n: changed.length })
-                                    : __('Other settings can be edited in server.properties from the Files tab.')}
+                                    : dirty
+                                    ? __('{{n}} unsaved changes', { n: Math.max(changed.length, 1) })
+                                    : mode === 'form'
+                                    ? __('Settings that are not listed here can be edited in the Text view.')
+                                    : __('Lines starting with # are comments.')}
                             </p>
                             {saved && canRestart && running && (
                                 <Button.Text
@@ -525,7 +707,7 @@ export default () => {
                                 </Button.Text>
                             )}
                             {canWrite && (
-                                <Button onClick={saveProperties} disabled={saving || changed.length === 0}>
+                                <Button onClick={saveProperties} disabled={saving || !dirty}>
                                     {__('Save')}
                                 </Button>
                             )}

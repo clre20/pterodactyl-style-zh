@@ -159,6 +159,33 @@
         <div class="row">
             <div class="col-xs-12">
                 <div class="box">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">{{ __('Background Rotation') }}</h3>
+                    </div>
+                    <div class="box-body">
+                        <div class="row">
+                            <div class="form-group col-sm-6">
+                                <label class="control-label">{{ __('When there are several backgrounds') }}</label>
+                                <select name="background_mode" class="form-control">
+                                    @foreach (['random' => __('Pick one at random for each visit'), 'slideshow' => __('Slideshow: change at a set interval')] as $value => $label)
+                                        <option value="{{ $value }}" @if(old('background_mode', $theme['background_mode']) === $value) selected @endif>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                                <p class="text-muted small">{{ __('Applies to both the page backgrounds and the login backgrounds uploaded below.') }}</p>
+                            </div>
+                            <div class="form-group col-sm-6">
+                                <label class="control-label">{{ __('Slideshow interval (seconds)') }}</label>
+                                <input type="number" name="background_interval" class="form-control" min="5" max="3600" value="{{ old('background_interval', $theme['background_interval']) }}">
+                                <p class="text-muted small">{{ __('Between 5 and 3600 seconds. Images fade from one to the next.') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box">
                     <div class="box-footer" style="border-top: 0;">
                         {!! csrf_field() !!}
                         <button type="submit" name="_method" value="PATCH" class="btn btn-sm btn-primary pull-right">{{ __('Save') }}</button>
@@ -179,26 +206,36 @@
                         <h3 class="box-title">{{ $heading }}</h3>
                     </div>
                     <div class="box-body">
-                        <div class="glass-logo-row">
-                            <div class="glass-bg-preview @unless($backgrounds[$target]) is-default @endunless" @if($backgrounds[$target]) style="background-image: url('{{ $backgrounds[$target] }}');" @endif></div>
-                            <div class="glass-logo-actions">
-                                <p class="text-muted small">{{ $help }} {{ __('Use a landscape PNG, JPG or WebP image of at least 1600 × 900 pixels, up to 4 MB. It is darkened automatically so text stays readable.') }}</p>
-                                <form action="{{ route('admin.settings.appearance.background') }}" method="POST" enctype="multipart/form-data" class="glass-logo-form">
-                                    {!! csrf_field() !!}
-                                    <input type="hidden" name="target" value="{{ $target }}">
-                                    <input type="file" name="background" accept="image/png,image/jpeg,image/webp" class="form-control" required>
-                                    <button type="submit" class="btn btn-sm btn-primary">{{ __('Upload') }}</button>
-                                </form>
-                                @if($backgrounds[$target])
-                                    <form action="{{ route('admin.settings.appearance.background') }}" method="POST" style="margin-top: 10px;">
+                        <p class="text-muted small">{{ $help }} {{ __('Use a landscape PNG, JPG or WebP image of at least 1600 × 900 pixels, up to 4 MB. It is darkened automatically so text stays readable.') }} {{ __('You can keep up to :max images; with more than one, they are shown at random or as a slideshow.', ['max' => \Pterodactyl\Extensions\Themes\ThemeSettings::MAX_BACKGROUNDS]) }}</p>
+                        <div class="glass-bg-grid">
+                            @forelse($backgrounds[$target] as $file => $url)
+                                <div class="glass-bg-thumb" style="background-image: url('{{ $url }}');">
+                                    <form action="{{ route('admin.settings.appearance.background') }}" method="POST">
                                         {!! csrf_field() !!}
                                         <input type="hidden" name="_method" value="DELETE">
                                         <input type="hidden" name="target" value="{{ $target }}">
-                                        <button type="submit" class="btn btn-sm btn-danger">{{ __('Restore default background') }}</button>
+                                        <input type="hidden" name="file" value="{{ $file }}">
+                                        <button type="submit" title="{{ __('Remove') }}" aria-label="{{ __('Remove') }}"><i class="fa fa-times"></i></button>
                                     </form>
-                                @endif
-                            </div>
+                                </div>
+                            @empty
+                                <div class="glass-bg-thumb is-default"><span>{{ __('Default') }}</span></div>
+                            @endforelse
                         </div>
+                        <form action="{{ route('admin.settings.appearance.background') }}" method="POST" enctype="multipart/form-data" class="glass-logo-form" style="margin-top: 14px;">
+                            {!! csrf_field() !!}
+                            <input type="hidden" name="target" value="{{ $target }}">
+                            <input type="file" name="background[]" accept="image/png,image/jpeg,image/webp" class="form-control" multiple required>
+                            <button type="submit" class="btn btn-sm btn-primary">{{ __('Upload') }}</button>
+                        </form>
+                        @if(count($backgrounds[$target]) > 1)
+                            <form action="{{ route('admin.settings.appearance.background') }}" method="POST" style="margin-top: 10px;">
+                                {!! csrf_field() !!}
+                                <input type="hidden" name="_method" value="DELETE">
+                                <input type="hidden" name="target" value="{{ $target }}">
+                                <button type="submit" class="btn btn-sm btn-danger">{{ __('Remove all') }}</button>
+                            </form>
+                        @endif
                     </div>
                 </div>
             </div>

@@ -22,6 +22,7 @@
             {!! Theme::css('css/pterodactyl.css?t={cache-version}') !!}
             <link media="all" type="text/css" rel="stylesheet" href="{{ \Pterodactyl\Extensions\Themes\Brand::asset('css/glass.css') }}"/>
             <style id="theme-vars">{!! \Pterodactyl\Extensions\Themes\ThemeSettings::cssVariables() !!}</style>
+            @include('partials.glass-background')
             <script>
                 // Coming from another admin page: skip the sidebar's entrance animation.
                 try {

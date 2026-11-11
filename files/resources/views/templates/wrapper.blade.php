@@ -31,6 +31,7 @@
                 </script>
             @endif
             <style id="theme-vars">{!! \Pterodactyl\Extensions\Themes\ThemeSettings::cssVariables() !!}</style>
+            @include('partials.glass-background')
             <script>
                 window.ThemeConfig = @json(\Pterodactyl\Extensions\Themes\ThemeSettings::forClient());
             </script>

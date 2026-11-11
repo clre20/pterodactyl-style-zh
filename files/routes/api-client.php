@@ -19,6 +19,7 @@ use Pterodactyl\Http\Middleware\Api\Client\Server\AuthenticateServerAccess;
 */
 Route::get('/', [Client\ClientController::class, 'index'])->name('api:client.index');
 Route::get('/permissions', [Client\ClientController::class, 'permissions']);
+Route::get('/resources', Client\ResourceOverviewController::class);
 
 Route::prefix('/account')->middleware(AccountSubject::class)->group(function () {
     Route::prefix('/')->withoutMiddleware(RequireTwoFactorAuthentication::class)->group(function () {
@@ -71,6 +72,7 @@ Route::group([
     Route::get('/activity', Client\Servers\ActivityLogController::class)->name('api:client:server.activity');
 
     Route::get('/minecraft/status', [Client\Servers\MinecraftController::class, 'status']);
+    Route::get('/minecraft/profile', [Client\Servers\MinecraftController::class, 'profile']);
     Route::post('/command', [Client\Servers\CommandController::class, 'index']);
     Route::post('/power', [Client\Servers\PowerController::class, 'index']);
 

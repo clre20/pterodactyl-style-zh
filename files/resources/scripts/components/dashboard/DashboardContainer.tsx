@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Server } from '@/api/server/getServer';
 import getServers from '@/api/getServers';
 import ServerRow from '@/components/dashboard/ServerRow';
+import { useLivePolling } from '@/lib/liveStats';
 import Spinner from '@/components/elements/Spinner';
 import PageContentBlock from '@/components/elements/PageContentBlock';
 import useFlash from '@/plugins/useFlash';
@@ -88,6 +89,9 @@ export default () => {
     }, [showOnlyAdmin]);
 
     // Only count the servers that are on screen, so the cards match the list below.
+    useLivePolling(
+        (servers?.items || []).filter((s) => s.status !== 'suspended' && !s.isNodeUnderMaintenance).map((s) => s.uuid)
+    );
     const listed = (servers?.items || []).map((s) => statuses[s.uuid]);
     const runningCount = listed.filter((v) => v === 'running' || v === 'starting' || v === 'stopping').length;
     const stoppedCount = listed.filter((v) => v === 'offline').length;
