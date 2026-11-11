@@ -217,7 +217,7 @@
                     'I Accept',
                     'I do not Accept',
                     'The EULA for this server has been accepted, restarting server now.',
-                    'Startup Command Variable:', 'Input Rules:', 'Access in Startup:', 'Validation Rules:',
+                    'Startup Command Variable:', 'Input Rules:', 'Access in Startup:', 'Validation Rules:', 'Required',
                     'Select Additional Allocations', 'Select a Node', 'Select a Nest', 'Select a Nest Egg', 'Select a Service Pack', 'Select a Default Allocation',
                 ];
                 $glassSwal = [];

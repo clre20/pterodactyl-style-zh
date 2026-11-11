@@ -14,13 +14,15 @@ const POLL_MS = 2000;
 
 export interface LiveServer {
     stats: ServerStats;
-    /** Bytes per second in both directions together, from the last two readings. */
-    networkRate: number;
-    history: Record<TrendMetric, number[]>;
+    /** Bytes per second received (download) and sent (upload), from the last two readings. */
+    rxRate: number;
+    txRate: number;
+    /** "network" holds the download rate; the upload rate is in "upload". */
+    history: Record<TrendMetric | 'upload', number[]>;
 }
 
 const servers = new Map<string, LiveServer>();
-const lastNetwork = new Map<string, { bytes: number; at: number }>();
+const lastNetwork = new Map<string, { rx: number; tx: number; at: number }>();
 const listeners = new Set<() => void>();
 let wanted: string[] = [];
 let timer: ReturnType<typeof setInterval> | null = null;
@@ -28,17 +30,17 @@ let inFlight = false;
 
 const storageKey = (uuid: string) => `panel:trend:${uuid}`;
 
-const restore = (uuid: string): Record<TrendMetric, number[]> => {
-    const empty = { cpu: [], memory: [], network: [] };
+const SERIES = [...TREND_METRICS, 'upload'] as const;
+
+const restore = (uuid: string): LiveServer['history'] => {
+    const empty: LiveServer['history'] = { cpu: [], memory: [], network: [], upload: [] };
     try {
         const saved = JSON.parse(sessionStorage.getItem(storageKey(uuid)) || 'null');
         // Readings older than a minute would draw a misleading line.
         if (!saved || Date.now() - saved.at > 60000) return empty;
-        TREND_METRICS.forEach((m) => {
+        SERIES.forEach((m) => {
             if (Array.isArray(saved.h?.[m])) {
-                (empty[m] as number[]) = saved.h[m]
-                    .filter((v: unknown) => typeof v === 'number')
-                    .slice(-HISTORY_POINTS);
+                empty[m] = saved.h[m].filter((v: unknown) => typeof v === 'number').slice(-HISTORY_POINTS);
             }
         });
     } catch (e) {
@@ -78,25 +80,32 @@ const poll = () => {
                     networkTxInBytes: a.resources.network_tx_bytes,
                     uptime: a.resources.uptime,
                 };
-                const bytes = stats.networkRxInBytes + stats.networkTxInBytes;
+                const rx = stats.networkRxInBytes;
+                const tx = stats.networkTxInBytes;
                 const before = lastNetwork.get(uuid);
-                let rate = servers.get(uuid)?.networkRate || 0;
+                let rxRate = servers.get(uuid)?.rxRate || 0;
+                let txRate = servers.get(uuid)?.txRate || 0;
                 // The panel answers from a two second cache, so identical readings can arrive twice.
                 if (!before) {
-                    lastNetwork.set(uuid, { bytes, at: now });
-                } else if (bytes !== before.bytes || now - before.at > 6000) {
-                    rate = bytes >= before.bytes ? ((bytes - before.bytes) * 1000) / (now - before.at) : 0;
-                    lastNetwork.set(uuid, { bytes, at: now });
+                    lastNetwork.set(uuid, { rx, tx, at: now });
+                } else if (rx !== before.rx || tx !== before.tx || now - before.at > 6000) {
+                    const seconds = (now - before.at) / 1000;
+                    // The counters start again from zero when the server restarts.
+                    rxRate = rx >= before.rx ? (rx - before.rx) / seconds : 0;
+                    txRate = tx >= before.tx ? (tx - before.tx) / seconds : 0;
+                    lastNetwork.set(uuid, { rx, tx, at: now });
                 }
                 const off = stats.status === 'offline';
                 const history = servers.get(uuid)?.history || restore(uuid);
                 servers.set(uuid, {
                     stats,
-                    networkRate: off ? 0 : rate,
+                    rxRate: off ? 0 : rxRate,
+                    txRate: off ? 0 : txRate,
                     history: {
                         cpu: push(history.cpu, off ? 0 : stats.cpuUsagePercent),
                         memory: push(history.memory, off ? 0 : stats.memoryUsageInBytes),
-                        network: push(history.network, off ? 0 : rate),
+                        network: push(history.network, off ? 0 : rxRate),
+                        upload: push(history.upload || [], off ? 0 : txRate),
                     },
                 });
             });

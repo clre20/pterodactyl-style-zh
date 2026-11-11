@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExchangeAlt, faStar, faUserFriends } from '@fortawesome/free-solid-svg-icons';
+import { faArrowDown, faArrowUp, faExchangeAlt, faStar, faUserFriends } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { Server } from '@/api/server/getServer';
 import { ServerPowerState } from '@/api/server/getServerResourceUsage';
@@ -50,13 +50,18 @@ const Pill = ({
  */
 const MIN_POINTS = 8;
 
+const UPLOAD_COLOR = '#fbbf24';
+
 const Sparkline = ({
     values,
+    second,
     max,
     color,
     className,
 }: {
     values: number[];
+    /** A second line on the same scale: upload, next to download. */
+    second?: number[];
     max: number;
     color: string;
     className?: string;
@@ -66,23 +71,32 @@ const Sparkline = ({
     }
 
     // With only a few readings the line is stretched across the width rather than squeezed into a corner.
-    const padded = [...Array(Math.max(0, MIN_POINTS - values.length)).fill(values[0]), ...values];
-    const top = Math.max(max, ...padded, 1);
-    const step = 100 / (padded.length - 1);
-    const points = padded.map((v, i) => `${(i * step).toFixed(1)},${(22 - (v / top) * 20).toFixed(1)}`);
+    const pad = (list: number[]) => [...Array(Math.max(0, MIN_POINTS - list.length)).fill(list[0] || 0), ...list];
+    const a = pad(values);
+    const b = second && second.length ? pad(second).slice(-a.length) : null;
+    const top = Math.max(max, ...a, ...(b || []), 1);
+    const path = (list: number[]) => {
+        const step = 100 / (list.length - 1);
+
+        return list.map((v, i) => `${(i * step).toFixed(1)},${(22 - (v / top) * 20).toFixed(1)}`).join(' ');
+    };
+    const line = (points: string, stroke: string) => (
+        <polyline
+            points={points}
+            fill={'none'}
+            stroke={stroke}
+            strokeWidth={1.5}
+            strokeLinejoin={'round'}
+            strokeLinecap={'round'}
+            vectorEffect={'non-scaling-stroke'}
+        />
+    );
 
     return (
         <svg aria-hidden viewBox={'0 0 100 24'} preserveAspectRatio={'none'} className={className}>
-            <polygon points={`0,24 ${points.join(' ')} 100,24`} fill={color} opacity={0.14} />
-            <polyline
-                points={points.join(' ')}
-                fill={'none'}
-                stroke={color}
-                strokeWidth={1.5}
-                strokeLinejoin={'round'}
-                strokeLinecap={'round'}
-                vectorEffect={'non-scaling-stroke'}
-            />
+            <polygon points={`0,24 ${path(a)} 100,24`} fill={color} opacity={0.14} />
+            {b && line(path(b), UPLOAD_COLOR)}
+            {line(path(a), color)}
         </svg>
     );
 };
@@ -206,23 +220,34 @@ export default ({
     const trendMax =
         metric === 'cpu' ? server.limits.cpu || 100 : metric === 'memory' ? mbToBytes(server.limits.memory) || 1 : 1024;
     const trendLabel = metric === 'cpu' ? __('CPU') : metric === 'memory' ? __('Memory') : __('Network');
-    const trendValue = !showStats
-        ? '—'
-        : metric === 'cpu'
-        ? `${stats!.cpuUsagePercent.toFixed(1)}%`
-        : metric === 'memory'
-        ? bytesToString(stats!.memoryUsageInBytes)
-        : `${bytesToString(live!.networkRate)}/s`;
+    const trendValue = !showStats ? (
+        '—'
+    ) : metric === 'cpu' ? (
+        `${stats!.cpuUsagePercent.toFixed(1)}%`
+    ) : metric === 'memory' ? (
+        bytesToString(stats!.memoryUsageInBytes)
+    ) : (
+        <>
+            <span title={__('Download')} style={{ color: look.color }}>
+                <FontAwesomeIcon icon={faArrowDown} className={'mr-1 h-2.5 w-2.5'} />
+                {bytesToString(live!.rxRate)}/s
+            </span>
+            <span title={__('Upload')} className={'ml-2'} style={{ color: UPLOAD_COLOR }}>
+                <FontAwesomeIcon icon={faArrowUp} className={'mr-1 h-2.5 w-2.5'} />
+                {bytesToString(live!.txRate)}/s
+            </span>
+        </>
+    );
     const nextMetric = () => {
         const next = TREND_METRICS[(TREND_METRICS.indexOf(metric) + 1) % TREND_METRICS.length];
         saveTrendMetric(server.uuid, next);
         setMetric(next);
     };
     const trend = (
-        <div className={classNames('relative flex-none', grid ? 'mt-auto w-full' : 'hidden xl:block w-32')}>
+        <div className={classNames('relative flex-none', grid ? 'mt-auto w-full' : 'hidden xl:block w-48')}>
             <button
                 type={'button'}
-                title={__('Change what the line shows')}
+                title={`${trendLabel} · ${__('Change what the line shows')}`}
                 onClick={(e) => {
                     // The whole card is a link; this must not open the server.
                     e.preventDefault();
@@ -233,14 +258,16 @@ export default ({
                     'relative z-10 flex w-full items-center justify-between gap-2 rounded-md px-1 text-[0.7rem] leading-5 text-neutral-400 transition-colors duration-150 hover:bg-white/10 hover:text-neutral-100'
                 }
             >
-                <span className={'inline-flex items-center gap-1'}>
+                <span className={'inline-flex items-center gap-1 whitespace-nowrap'}>
                     <FontAwesomeIcon icon={faExchangeAlt} className={'h-2.5 w-2.5 opacity-70'} />
-                    {trendLabel}
+                    {/* The two network rates need the room in the narrow list column. */}
+                    {(grid || metric !== 'network') && trendLabel}
                 </span>
-                <span className={'tabular-nums text-neutral-200'}>{trendValue}</span>
+                <span className={'whitespace-nowrap tabular-nums text-neutral-200'}>{trendValue}</span>
             </button>
             <Sparkline
                 values={showStats ? live!.history[metric] : []}
+                second={showStats && metric === 'network' ? live!.history.upload : undefined}
                 max={trendMax}
                 color={look.color}
                 className={classNames('block w-full', grid ? 'h-8' : 'h-6')}

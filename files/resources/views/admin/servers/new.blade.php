@@ -314,6 +314,7 @@
 
 @section('footer-scripts')
     @parent
+    @include('partials.admin.egg-text')
     {!! Theme::js('vendor/lodash/lodash.js') !!}
 
     <script type="application/javascript">
@@ -338,7 +339,7 @@
         // END Persist 'Service Variables'
     </script>
 
-    {!! Theme::js('js/admin/new-server.js?v=20220530') !!}
+    {!! Theme::js('js/admin/new-server.js?t={cache-version}') !!}
 
     <script type="application/javascript">
         $(document).ready(function() {

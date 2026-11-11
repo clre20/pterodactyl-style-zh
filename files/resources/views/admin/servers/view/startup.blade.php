@@ -105,6 +105,7 @@
 
 @section('footer-scripts')
     @parent
+    @include('partials.admin.egg-text')
     {!! Theme::js('vendor/lodash/lodash.js') !!}
     <script>
     function escapeHtml(str) {
@@ -150,16 +151,16 @@
             $('#appendVariablesTo').html('');
             $.each(_.get(objectChain, 'variables', []), function (i, item) {
                 var setValue = _.get(Pterodactyl.server_variables, item.env_variable, item.default_value);
-                var isRequired = (item.required === 1) ? '<span class="label label-danger">Required</span> ' : '';
+                var isRequired = (item.required === 1) ? '<span class="label label-danger">' + __t('Required') + '</span> ' : '';
                 var dataAppend = ' \
                     <div class="col-xs-12"> \
                         <div class="box"> \
                             <div class="box-header with-border"> \
-                                <h3 class="box-title">' + isRequired + escapeHtml(item.name) + '</h3> \
+                                <h3 class="box-title">' + isRequired + escapeHtml(__egg(item.name)) + '</h3> \
                             </div> \
                             <div class="box-body"> \
                                 <input name="environment[' + escapeHtml(item.env_variable) + ']" class="form-control" type="text" id="egg_variable_' + escapeHtml(item.env_variable) + '" /> \
-                                <p class="no-margin small text-muted">' + escapeHtml(item.description) + '</p> \
+                                <p class="no-margin small text-muted" style="white-space: pre-line;">' + escapeHtml(__egg(item.description)) + '</p> \
                             </div> \
                             <div class="box-footer"> \
                                 <p class="no-margin text-muted small"><strong>' + __t('Startup Command Variable:') + '</strong> <code>' + escapeHtml(item.env_variable) + '</code></p> \

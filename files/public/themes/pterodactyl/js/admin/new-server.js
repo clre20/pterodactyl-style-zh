@@ -1,3 +1,8 @@
+// Egg variable names and descriptions are shown in the panel's language when a translation exists.
+function eggText(text) {
+    return typeof window.__egg === 'function' ? window.__egg(text) : text;
+}
+
 // Copyright (c) 2015 - 2017 Dane Everitt <dane@daneeveritt.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -120,12 +125,12 @@ $('#pEggId').on('change', function (event) {
     $.each(_.get(objectChain, 'variables', []), function (i, item) {
         variableIds[item.env_variable] = 'var_ref_' + item.id;
 
-        let isRequired = (item.required === 1) ? '<span class="label label-danger">Required</span> ' : '';
+        let isRequired = (item.required === 1) ? '<span class="label label-danger">' + __t('Required') + '</span> ' : '';
         let dataAppend = ' \
             <div class="form-group col-sm-6"> \
-                <label for="var_ref_' + escapeHtml(item.id) + '" class="control-label">' + isRequired + escapeHtml(item.name) + '</label> \
+                <label for="var_ref_' + escapeHtml(item.id) + '" class="control-label">' + isRequired + escapeHtml(eggText(item.name)) + '</label> \
                 <input type="text" id="var_ref_' + escapeHtml(item.id) + '" autocomplete="off" name="environment[' + escapeHtml(item.env_variable) + ']" class="form-control" value="' + escapeHtml(item.default_value) + '" /> \
-                <p class="text-muted small">' + escapeHtml(item.description) + '<br /> \
+                <p class="text-muted small">' + escapeHtml(eggText(item.description)) + '<br /> \
                 <strong>' + __t('Access in Startup:') + '</strong> <code>{{' + escapeHtml(item.env_variable) + '}}</code><br /> \
                 <strong>' + __t('Validation Rules:') + '</strong> <code>' + escapeHtml(item.rules) + '</code></small></p> \
             </div> \
