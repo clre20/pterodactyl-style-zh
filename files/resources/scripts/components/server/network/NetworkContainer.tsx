@@ -13,6 +13,7 @@ import getServerAllocations from '@/api/swr/getServerAllocations';
 import isEqual from 'react-fast-compare';
 import { useDeepCompareEffect } from '@/plugins/useDeepCompareEffect';
 
+import { SkeletonList } from '@/components/elements/Skeleton';
 import { __ } from '@/i18n';
 const NetworkContainer = () => {
     const [loading, setLoading] = useState(false);
@@ -54,7 +55,7 @@ const NetworkContainer = () => {
     return (
         <ServerContentBlock showFlashKey={'server:network'} title={__('Network')}>
             {!data ? (
-                <Spinner size={'large'} centered />
+                <SkeletonList rows={2} />
             ) : (
                 <>
                     {data.map((allocation) => (

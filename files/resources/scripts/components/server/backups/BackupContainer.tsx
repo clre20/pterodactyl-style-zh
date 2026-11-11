@@ -11,6 +11,9 @@ import { ServerContext } from '@/state/server';
 import ServerContentBlock from '@/components/elements/ServerContentBlock';
 import Pagination from '@/components/elements/Pagination';
 
+import { SkeletonList } from '@/components/elements/Skeleton';
+import EmptyState from '@/components/elements/EmptyState';
+import { faArchive } from '@fortawesome/free-solid-svg-icons';
 import { __ } from '@/i18n';
 const BackupContainer = () => {
     const { page, setPage } = useContext(ServerBackupContext);
@@ -30,7 +33,11 @@ const BackupContainer = () => {
     }, [error]);
 
     if (!backups || (error && isValidating)) {
-        return <Spinner size={'large'} centered />;
+        return (
+            <ServerContentBlock title={__('Backups')}>
+                <SkeletonList rows={3} />
+            </ServerContentBlock>
+        );
     }
 
     return (
@@ -42,11 +49,15 @@ const BackupContainer = () => {
                         // Don't show any error messages if the server has no backups and the user cannot
                         // create additional ones for the server.
                         !backupLimit ? null : (
-                            <p css={tw`text-center text-sm text-neutral-300`}>
-                                {page > 1
-                                    ? __('Looks like we\'ve run out of backups to show you, try going back a page.')
-                                    : __('It looks like there are no backups currently stored for this server.')}
-                            </p>
+                            <EmptyState
+                                icon={faArchive}
+                                title={page > 1 ? __('No more backups') : __('No backups yet')}
+                                message={
+                                    page > 1
+                                        ? __('Looks like we\'ve run out of backups to show you, try going back a page.')
+                                        : __('A backup keeps a copy of your server files that you can restore or download later.')
+                                }
+                            />
                         )
                     ) : (
                         items.map((backup, index) => (
@@ -56,9 +67,11 @@ const BackupContainer = () => {
                 }
             </Pagination>
             {backupLimit === 0 && (
-                <p css={tw`text-center text-sm text-neutral-300`}>
-                    {__('Backups cannot be created for this server because the backup limit is set to 0.')}
-                </p>
+                <EmptyState
+                    icon={faArchive}
+                    title={__('Backups are not available')}
+                    message={__('Backups cannot be created for this server because the backup limit is set to 0.')}
+                />
             )}
             <Can action={'backup.create'}>
                 <div css={tw`mt-6 sm:flex items-center justify-end`}>

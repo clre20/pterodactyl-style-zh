@@ -23,6 +23,9 @@ import { FileActionCheckbox } from '@/components/server/files/SelectFileCheckbox
 import { hashToPath } from '@/helpers';
 import style from './style.module.css';
 
+import { SkeletonList } from '@/components/elements/Skeleton';
+import EmptyState from '@/components/elements/EmptyState';
+import { faFolderOpen } from '@fortawesome/free-solid-svg-icons';
 import { __ } from '@/i18n';
 const sortFiles = (files: FileObject[]): FileObject[] => {
     const sortedFiles: FileObject[] = files
@@ -87,11 +90,15 @@ export default () => {
                 </div>
             </ErrorBoundary>
             {!files ? (
-                <Spinner size={'large'} centered />
+                <SkeletonList rows={8} variant={'file'} />
             ) : (
                 <>
                     {!files.length ? (
-                        <p css={tw`text-sm text-neutral-400 text-center`}>{__('This directory seems to be empty.')}</p>
+                        <EmptyState
+                            icon={faFolderOpen}
+                            title={__('This folder is empty')}
+                            message={__('Upload files or create a new file or folder with the buttons above.')}
+                        />
                     ) : (
                         <CSSTransition classNames={'fade'} timeout={150} appear in>
                             <div>

@@ -10,6 +10,7 @@ import SpinnerOverlay from '@/components/elements/SpinnerOverlay';
 import { ServerContext } from '@/state/server';
 import { usePermissions } from '@/plugins/usePermissions';
 import { theme as th } from 'twin.macro';
+import { accentColor } from '@/lib/theme';
 import useEventListener from '@/plugins/useEventListener';
 import { debounce } from 'debounce';
 import { usePersistedState } from '@/plugins/usePersistedState';
@@ -41,7 +42,7 @@ const theme = {
     brightMagenta: '#C792EA',
     brightCyan: '#89DDFF',
     brightWhite: '#ffffff',
-    selection: 'rgba(129, 140, 248, 0.45)',
+    selection: accentColor('--ac-a-l', 0.45),
 };
 
 const terminalProps: ITerminalOptions = {

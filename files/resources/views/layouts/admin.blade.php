@@ -21,9 +21,15 @@
             {!! Theme::css('vendor/animate/animate.min.css?t={cache-version}') !!}
             {!! Theme::css('css/pterodactyl.css?t={cache-version}') !!}
             <link media="all" type="text/css" rel="stylesheet" href="{{ \Pterodactyl\Extensions\Themes\Brand::asset('css/glass.css') }}"/>
-            <link rel="preconnect" href="https://fonts.googleapis.com">
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+            <style id="theme-vars">{!! \Pterodactyl\Extensions\Themes\ThemeSettings::cssVariables() !!}</style>
+            <script>
+                // Coming from another admin page: skip the sidebar's entrance animation.
+                try {
+                    if (sessionStorage.getItem('glass:admin')) document.documentElement.classList.add('glass-returning');
+                    sessionStorage.setItem('glass:admin', '1');
+                } catch (e) {}
+            </script>
+            <link rel="stylesheet" href="{{ \Pterodactyl\Extensions\Themes\Brand::asset('css/fonts.css') }}">
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
 
@@ -310,6 +316,38 @@
                     // Glass boxes use backdrop blur, which traps fixed children. Move modals to <body>
                     // so they sit above the backdrop instead of inside a box.
                     $('.modal').appendTo('body');
+
+                    // Header shadow once the page is scrolled.
+                    var onScroll = function () { document.body.classList.toggle('glass-scrolled', window.scrollY > 8); };
+                    window.addEventListener('scroll', onScroll, { passive: true });
+                    onScroll();
+
+                    // Loading bar while the next page is fetched.
+                    var bar = document.createElement('div');
+                    bar.className = 'glass-progress';
+                    document.body.appendChild(bar);
+                    window.addEventListener('beforeunload', function () {
+                        bar.classList.add('run');
+                        // A download (e.g. exporting an egg) never leaves the page, so clear the bar again.
+                        setTimeout(function () { bar.classList.remove('run'); }, 6000);
+                    });
+                    window.addEventListener('pageshow', function () { bar.classList.remove('run'); });
+
+                    // Numbers on stat cards count up from zero.
+                    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                        document.querySelectorAll('.glass-stat .value').forEach(function (el) {
+                            var text = el.textContent.trim();
+                            if (!/^\d{1,7}$/.test(text)) return;
+                            var target = parseInt(text, 10), start = performance.now(), duration = 700;
+                            if (target === 0) return;
+                            el.textContent = '0';
+                            (function tick(now) {
+                                var p = Math.min(1, (now - start) / duration);
+                                el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+                                if (p < 1) requestAnimationFrame(tick);
+                            })(start);
+                        });
+                    }
                 })
             </script>
         @show

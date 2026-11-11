@@ -3,6 +3,8 @@ import { faCube, faCode, faGamepad, faMicrochip, faServer, faDatabase, faGlobe }
 
 export interface ServerIconStyle {
     icon: IconDefinition;
+    /** Set when the panel owner chose an icon for the egg; drawn instead of "icon". */
+    glyph?: { char: string; style: 's' | 'r' | 'b' };
     /** Tailwind-free inline colours so the tile works on any background. */
     color: string;
     tint: string;
@@ -10,12 +12,41 @@ export interface ServerIconStyle {
 
 const style = (icon: IconDefinition, color: string, tint: string): ServerIconStyle => ({ icon, color, tint });
 
+type Described = {
+    eggFeatures?: string[];
+    invocation?: string;
+    dockerImage?: string;
+    eggIcon?: { glyph: string; style: 's' | 'r' | 'b'; color: string | null } | null;
+};
+
+const hexToTint = (hex: string, alpha: number): string => {
+    const n = parseInt(hex.slice(1), 16);
+
+    return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+};
+
 /**
- * Picks an icon for a server from what the client API exposes about its egg: the
- * egg features, the startup command and the Docker image. Nothing is hard coded
- * per server, and anything unrecognised gets the generic server icon.
+ * Picks an icon for a server. An icon the panel owner set on the egg (Admin → Nests →
+ * Egg) wins; otherwise one is chosen from what the client API exposes about the egg:
+ * its features, the startup command and the Docker image. Nothing is hard coded per
+ * server, and anything unrecognised gets the generic server icon.
  */
-export default (server: { eggFeatures?: string[]; invocation?: string; dockerImage?: string }): ServerIconStyle => {
+export default (server: Described): ServerIconStyle => {
+    const detected = detect(server);
+    const custom = server.eggIcon;
+    if (!custom) {
+        return detected;
+    }
+
+    return {
+        ...detected,
+        glyph: { char: custom.glyph, style: custom.style },
+        // Without a colour of its own the icon keeps the colour of the detected server type.
+        ...(custom.color ? { color: custom.color, tint: hexToTint(custom.color, 0.14) } : {}),
+    };
+};
+
+const detect = (server: Described): ServerIconStyle => {
     const features = server.eggFeatures || [];
     const text = `${server.invocation || ''} ${server.dockerImage || ''}`.toLowerCase();
 

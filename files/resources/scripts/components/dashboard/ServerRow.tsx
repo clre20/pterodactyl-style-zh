@@ -9,21 +9,31 @@ import Spinner from '@/components/elements/Spinner';
 import classNames from 'classnames';
 import serverIcon from '@/lib/serverIcon';
 
+import ServerTypeIcon from '@/components/elements/ServerTypeIcon';
 import { __ } from '@/i18n';
 // Determines if the current value is in an alarm threshold so we can show it in red rather
 // than the more faded default style.
 const isAlarmState = (current: number, limit: number): boolean => limit > 0 && current / (limit * 1024 * 1024) >= 0.9;
 
-const Pill = ({ tone, children }: { tone: 'green' | 'red' | 'amber' | 'grey'; children: React.ReactNode }) => (
+const Pill = ({
+    tone,
+    live,
+    children,
+}: {
+    tone: 'green' | 'red' | 'amber' | 'grey';
+    /** Adds the breathing ring that marks a server as up right now. */
+    live?: boolean;
+    children: React.ReactNode;
+}) => (
     <span
-        className={classNames('inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-full border whitespace-nowrap', {
+        className={classNames('inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full border whitespace-nowrap', {
             'bg-green-400/15 text-green-300 border-green-400/35': tone === 'green',
             'bg-red-400/15 text-red-300 border-red-400/35': tone === 'red',
             'bg-yellow-400/15 text-yellow-200 border-yellow-400/35': tone === 'amber',
             'bg-white/5 text-neutral-300 border-white/15': tone === 'grey',
         })}
     >
-        <span aria-hidden>●</span>
+        <span aria-hidden className={classNames('state-dot', live && 'live')} />
         {children}
     </span>
 );
@@ -112,7 +122,9 @@ export default ({
                 : __('Unavailable')}
         </Pill>
     ) : !stats ? null : stats.status === 'running' ? (
-        <Pill tone={'green'}>{__('Running')}</Pill>
+        <Pill tone={'green'} live>
+            {__('Running')}
+        </Pill>
     ) : stats.status === 'offline' ? (
         <Pill tone={'red'}>{__('Offline')}</Pill>
     ) : (
@@ -120,15 +132,35 @@ export default ({
     );
 
     const showStats = stats && !isSuspended && !server.isNodeUnderMaintenance;
+    const isBusy = !isSuspended && !!stats && (stats.status === 'starting' || stats.status === 'stopping');
+    const isUp = !isSuspended && stats?.status === 'running';
 
     return (
-        <GreyRowBox as={Link} to={`/server/${server.id}`} className={classNames('flex-wrap gap-x-5 gap-y-3', className)}>
+        <GreyRowBox
+            as={Link}
+            to={`/server/${server.id}`}
+            className={classNames('relative overflow-hidden flex-wrap gap-x-5 gap-y-3', isBusy && 'state-busy', className)}
+            // A wash of the server type's colour from the left edge tells the kinds of server apart at a
+            // glance; it is stronger while the server is running.
+            style={{
+                backgroundImage: `linear-gradient(100deg, ${look.tint.replace(
+                    /[\d.]+\)$/,
+                    isUp ? '0.2)' : '0.09)'
+                )} 0%, transparent 38%)`,
+                ...(isSuspended ? { borderColor: 'rgba(248, 113, 113, 0.45)' } : {}),
+            }}
+        >
+            <span
+                aria-hidden
+                className={'absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full transition-opacity duration-300'}
+                style={{ background: look.color, opacity: isUp ? 1 : 0.35 }}
+            />
             <div
                 aria-hidden
                 className={'w-12 h-12 flex-none rounded-xl flex items-center justify-center border'}
                 style={{ background: look.tint, borderColor: look.tint.replace(/0\.1\d\)$/, '0.35)'), color: look.color }}
             >
-                <FontAwesomeIcon icon={look.icon} className={'w-5 h-5'} />
+                <ServerTypeIcon look={look} />
             </div>
             <div className={'flex-1 min-w-[12rem]'}>
                 <div className={'flex flex-wrap items-center gap-2'}>

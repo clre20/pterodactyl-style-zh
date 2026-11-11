@@ -31,7 +31,9 @@ for extra in "$BACKUP".extra-*.tar.gz; do
     [ -f "$extra" ] && tar xzf "$extra" -C "$PANEL"
 done
 rm -f "$PANEL/.glass-zh-new-files" "$PANEL/.glass-zh-backup"
-# Logo folder created by install.sh; removed only when no logo was uploaded.
+# Backgrounds uploaded through the theme, then the brand folder created by
+# install.sh (kept if a logo is still in it).
+rm -f "$PANEL"/public/brand/login-bg.* "$PANEL"/public/brand/page-bg.*
 rmdir "$PANEL/public/brand" 2>/dev/null || true
 
 OWNER="$(stat -c '%U:%G' "$PANEL/artisan")"
@@ -40,6 +42,8 @@ chown -R "$OWNER" "$PANEL/app" "$PANEL/resources" "$PANEL/routes" "$PANEL/public
 cd "$PANEL"
 # Accounts switched to Chinese would otherwise point at a language that no longer exists.
 php artisan tinker --execute="Pterodactyl\Models\User::query()->where('language', 'zh')->update(['language' => 'en']);" >/dev/null || true
+# Appearance options saved by the theme (colours, announcement, login text).
+php artisan tinker --execute="Illuminate\Support\Facades\DB::table('settings')->where('key', 'like', 'settings::glass:%')->delete();" >/dev/null || true
 php artisan optimize:clear >/dev/null
 php artisan view:clear >/dev/null
 echo "已還原為原本的面板。若先前把 APP_LOCALE 改成 zh，可在 .env 改回 en。"

@@ -72,40 +72,4 @@
             </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-xs-12">
-            <div class="box">
-                <div class="box-header with-border">
-                    <h3 class="box-title">{{ __('Logo') }}</h3>
-                </div>
-                <div class="box-body">
-                    @php($currentLogo = \Pterodactyl\Extensions\Themes\Brand::logoUrl())
-                    <div class="glass-logo-row">
-                        <div class="glass-logo-preview">
-                            @if($currentLogo)
-                                <img src="{{ $currentLogo }}" alt="">
-                            @else
-                                <span class="glass-brand-mark" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#0b1020" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18 12 5l8 13"/><path d="M8 13h8"/></svg></span>
-                            @endif
-                        </div>
-                        <div class="glass-logo-actions">
-                            <p class="text-muted small">{{ __('Shown in the navigation bar, on the login page, in the admin area, in emails and as the browser tab icon. Use a square PNG, JPG or WebP image of at least 128 × 128 pixels, up to 2 MB.') }}</p>
-                            <form action="{{ route('admin.settings.branding') }}" method="POST" enctype="multipart/form-data" class="glass-logo-form">
-                                {!! csrf_field() !!}
-                                <input type="file" name="logo" accept="image/png,image/jpeg,image/webp" class="form-control" required>
-                                <button type="submit" class="btn btn-sm btn-primary">{{ __('Upload') }}</button>
-                            </form>
-                            @if($currentLogo)
-                                <form action="{{ route('admin.settings.branding.delete') }}" method="POST" style="margin-top: 10px;">
-                                    {!! csrf_field() !!}
-                                    <input type="hidden" name="_method" value="DELETE">
-                                    <button type="submit" class="btn btn-sm btn-danger">{{ __('Restore default logo') }}</button>
-                                </form>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 @endsection

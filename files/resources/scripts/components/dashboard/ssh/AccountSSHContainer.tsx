@@ -13,6 +13,8 @@ import { format } from '@/lib/date';
 import CreateSSHKeyForm from '@/components/dashboard/ssh/CreateSSHKeyForm';
 import DeleteSSHKeyButton from '@/components/dashboard/ssh/DeleteSSHKeyButton';
 
+import { SkeletonList } from '@/components/elements/Skeleton';
+import EmptyState from '@/components/elements/EmptyState';
 import { __ } from '@/i18n';
 export default () => {
     const { clearAndAddHttpError } = useFlashKey('account');
@@ -35,9 +37,16 @@ export default () => {
                 <ContentBox title={__('SSH Keys')} css={tw`flex-1 overflow-hidden mt-8 md:mt-0 md:ml-8`}>
                     <SpinnerOverlay visible={!data && isValidating} />
                     {!data || !data.length ? (
-                        <p css={tw`text-center text-sm`}>
-                            {!data ? __('Loading...') : __('No SSH Keys exist for this account.')}
-                        </p>
+                        !data ? (
+                            <SkeletonList rows={2} />
+                        ) : (
+                            <EmptyState
+                                bare
+                                icon={faKey}
+                                title={__('No SSH keys yet')}
+                                message={__('Add a public key to sign in to SFTP without a password.')}
+                            />
+                        )
                     ) : (
                         data.map((key, index) => (
                             <GreyRowBox

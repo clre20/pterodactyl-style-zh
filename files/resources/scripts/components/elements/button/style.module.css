@@ -35,13 +35,13 @@
 
 .primary {
     @apply text-white focus:ring-primary-400 focus:ring-opacity-75;
-    background-image: linear-gradient(135deg, #6366f1, #0ea5e9);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+    background-image: linear-gradient(135deg, rgb(var(--ac-a)), rgb(var(--ac-b)));
+    box-shadow: 0 6px 20px rgb(var(--ac-a) / 0.35);
 
     &:hover,
     &:active {
         filter: brightness(1.1);
-        box-shadow: 0 8px 26px rgba(99, 102, 241, 0.5);
+        box-shadow: 0 8px 26px rgb(var(--ac-a) / 0.5);
     }
 
     &.secondary {

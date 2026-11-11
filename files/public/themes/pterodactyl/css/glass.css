@@ -3,6 +3,15 @@
  * Loaded after pterodactyl.css; only overrides colours, surfaces and spacing.
  */
 :root {
+    /* Accent colours as "r g b" triplets; the real values are injected by the layout
+       from Admin → Settings → Appearance (ThemeSettings::cssVariables). */
+    --ac-a: 99 102 241;
+    --ac-a-l: 129 140 248;
+    --ac-b: 14 165 233;
+    --ac-b-l: 62 183 237;
+    --ac-c: 168 85 247;
+    --primary-200: 196 197 250;
+    --primary-300: 177 179 248;
     --g-bg: #070b14;
     --g-surface: rgba(255, 255, 255, 0.055);
     --g-surface-2: rgba(255, 255, 255, 0.085);
@@ -11,8 +20,8 @@
     --g-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
     --g-text: #e6e9f2;
     --g-muted: #94a0b8;
-    --g-accent: #818cf8;
-    --g-accent-2: #22d3ee;
+    --g-accent: rgb(var(--ac-a-l));
+    --g-accent-2: rgb(var(--ac-b-l));
     --g-green: #6ee7b7;
     --g-red: #fca5a5;
     --g-amber: #fcd34d;
@@ -41,10 +50,13 @@ body::before {
     pointer-events: none;
     transform: translateZ(0);
     will-change: transform;
-    background:
-        radial-gradient(680px circle at 0% 100%, rgba(99, 102, 241, 0.42), transparent 70%),
-        radial-gradient(600px circle at 100% 0%, rgba(34, 211, 238, 0.22), transparent 70%),
-        radial-gradient(560px circle at 55% 110%, rgba(168, 85, 247, 0.24), transparent 70%);
+    /* --page-bg is set when the owner uploaded a page background (Settings → Appearance). */
+    background: var(
+        --page-bg,
+        radial-gradient(680px circle at 0% 100%, rgb(var(--ac-a) / 0.42), transparent 70%),
+        radial-gradient(600px circle at 100% 0%, rgb(var(--ac-b-l) / 0.22), transparent 70%),
+        radial-gradient(560px circle at 55% 110%, rgb(var(--ac-c) / 0.24), transparent 70%)
+    );
 }
 
 .wrapper,
@@ -61,16 +73,16 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 }
 
 a {
-    color: #a5b4fc;
+    color: rgb(var(--primary-300));
 }
 
 a:hover,
 a:focus {
-    color: #c7d2fe;
+    color: rgb(var(--primary-200));
 }
 
 code {
-    background: rgba(129, 140, 248, 0.14);
+    background: rgb(var(--ac-a-l) / 0.14);
     color: #c7d2fe;
     border-radius: 6px;
     font-family: 'JetBrains Mono', ui-monospace, monospace;
@@ -130,7 +142,7 @@ small {
     width: 30px;
     height: 30px;
     border-radius: 9px;
-    background: linear-gradient(135deg, #818cf8, #22d3ee);
+    background: linear-gradient(135deg, rgb(var(--ac-a-l)), rgb(var(--ac-b-l)));
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -172,7 +184,7 @@ small {
 }
 
 .glass-lang button.active {
-    background: rgba(129, 140, 248, 0.3);
+    background: rgb(var(--ac-a-l) / 0.3);
     color: #fff !important;
 }
 
@@ -213,7 +225,7 @@ small {
 }
 
 .skin-blue .sidebar-menu > li.active > a {
-    background: rgba(129, 140, 248, 0.2) !important;
+    background: rgb(var(--ac-a-l) / 0.2) !important;
     color: #fff;
 }
 
@@ -357,8 +369,8 @@ small {
 }
 
 .info-box-icon {
-    background: rgba(129, 140, 248, 0.16) !important;
-    color: #a5b4fc !important;
+    background: rgb(var(--ac-a-l) / 0.16) !important;
+    color: rgb(var(--primary-300)) !important;
     border-radius: 14px;
     margin: 12px 0 12px 12px;
     height: 68px;
@@ -415,7 +427,7 @@ small {
 }
 
 .table-hover > tbody > tr:hover {
-    background: rgba(129, 140, 248, 0.08);
+    background: rgb(var(--ac-a-l) / 0.08);
 }
 
 /* Forms ------------------------------------------------------------------- */
@@ -434,7 +446,7 @@ textarea {
 
 .form-control:focus {
     border-color: var(--g-accent) !important;
-    box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.25) !important;
+    box-shadow: 0 0 0 3px rgb(var(--ac-a-l) / 0.25) !important;
 }
 
 .input-group .form-control:not(:first-child),
@@ -470,12 +482,12 @@ label {
 }
 
 .select2-container--default .select2-results__option--highlighted[aria-selected] {
-    background: rgba(129, 140, 248, 0.35);
+    background: rgb(var(--ac-a-l) / 0.35);
 }
 
 .select2-container--default .select2-selection--multiple .select2-selection__choice {
-    background: rgba(129, 140, 248, 0.25);
-    border: 1px solid rgba(129, 140, 248, 0.45);
+    background: rgb(var(--ac-a-l) / 0.25);
+    border: 1px solid rgb(var(--ac-a-l) / 0.45);
     color: #fff;
 }
 
@@ -487,9 +499,9 @@ label {
 }
 
 .btn-primary {
-    background-image: linear-gradient(135deg, #6366f1, #0ea5e9) !important;
+    background-image: linear-gradient(135deg, rgb(var(--ac-a)), rgb(var(--ac-b))) !important;
     border: 0 !important;
-    box-shadow: 0 6px 18px rgba(99, 102, 241, 0.35);
+    box-shadow: 0 6px 18px rgb(var(--ac-a) / 0.35);
 }
 
 .btn-primary:hover,
@@ -564,9 +576,9 @@ label {
 .bg-blue,
 .bg-aqua,
 .bg-light-blue {
-    background: rgba(129, 140, 248, 0.18) !important;
+    background: rgb(var(--ac-a-l) / 0.18) !important;
     color: #c7d2fe !important;
-    border: 1px solid rgba(129, 140, 248, 0.35);
+    border: 1px solid rgb(var(--ac-a-l) / 0.35);
 }
 
 .label-default,
@@ -605,8 +617,8 @@ label {
 
 .alert-info,
 .callout.callout-info {
-    background: rgba(129, 140, 248, 0.14) !important;
-    border-color: rgba(129, 140, 248, 0.4) !important;
+    background: rgb(var(--ac-a-l) / 0.14) !important;
+    border-color: rgb(var(--ac-a-l) / 0.4) !important;
     color: #e0e7ff !important;
 }
 
@@ -629,7 +641,7 @@ label {
 
 .nav-tabs-custom > .nav-tabs > li.active > a,
 .nav-tabs-custom > .nav-tabs > li.active:hover > a {
-    background: rgba(129, 140, 248, 0.2) !important;
+    background: rgb(var(--ac-a-l) / 0.2) !important;
     color: #fff;
     border: 0 !important;
 }
@@ -652,8 +664,8 @@ label {
 
 .pagination > .active > a,
 .pagination > .active > span {
-    background: rgba(129, 140, 248, 0.35) !important;
-    border-color: rgba(129, 140, 248, 0.5) !important;
+    background: rgb(var(--ac-a-l) / 0.35) !important;
+    border-color: rgb(var(--ac-a-l) / 0.5) !important;
 }
 
 .modal-content {
@@ -820,7 +832,7 @@ hr {
     padding: 8px 14px;
 }
 .nav-tabs-custom > .nav-tabs > li.active > a {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.55), rgba(34, 211, 238, 0.35)) !important;
+    background: linear-gradient(135deg, rgb(var(--ac-a) / 0.55), rgb(var(--ac-b-l) / 0.35)) !important;
 }
 .nav-tabs-custom > .nav-tabs > li.header {
     color: #f4f6fb;
@@ -855,7 +867,7 @@ hr {
 }
 .btn-group[data-toggle='buttons'] > .btn.active,
 .btn-group[data-toggle='buttons'] > .btn:active {
-    background: linear-gradient(135deg, #6366f1, #22a5d8) !important;
+    background: linear-gradient(135deg, rgb(var(--ac-a)), rgb(var(--ac-b))) !important;
     border-color: transparent !important;
     color: #fff !important;
 }
@@ -901,7 +913,7 @@ hr {
     font-family: inherit !important;
 }
 .sweet-alert button.confirm {
-    background: linear-gradient(135deg, #6366f1, #22a5d8) !important;
+    background: linear-gradient(135deg, rgb(var(--ac-a)), rgb(var(--ac-b))) !important;
     color: #fff !important;
 }
 .sweet-alert.glass-danger button.confirm {
@@ -950,11 +962,11 @@ hr {
     background-color: #f87171 !important;
 }
 .sweet-alert .sa-icon.sa-info {
-    border-color: #818cf8 !important;
+    border-color: rgb(var(--ac-a-l)) !important;
 }
 .sweet-alert .sa-icon.sa-info::before,
 .sweet-alert .sa-icon.sa-info::after {
-    background-color: #818cf8 !important;
+    background-color: rgb(var(--ac-a-l)) !important;
 }
 .sweet-alert .la-ball-fall > div {
     background-color: #fff !important;
@@ -1052,9 +1064,9 @@ html[lang='zh-Hant'] label.control-label > span.field-optional:before {
     color: #8a96ad !important;
 }
 .content-wrapper .btn-group[data-toggle='buttons'] > .btn.active {
-    background: linear-gradient(135deg, #6366f1, #22a5d8) !important;
+    background: linear-gradient(135deg, rgb(var(--ac-a)), rgb(var(--ac-b))) !important;
     color: #fff !important;
-    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important;
+    box-shadow: 0 4px 14px rgb(var(--ac-a) / 0.35) !important;
 }
 
 /* "Requires Wings restart" marker on node settings */
@@ -1295,5 +1307,573 @@ html[lang='zh-Hant'] label.control-label > span.field-optional:before {
     .skin-blue .main-header .logo,
     .skin-blue .main-header .navbar {
         background: #0b1020 !important;
+    }
+}
+
+/* Settings → Appearance ----------------------------------------------------- */
+.glass-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.glass-preset {
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
+    border: 2px solid transparent;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.glass-preset:hover {
+    transform: translateY(-2px);
+}
+.glass-preset.active {
+    border-color: #fff;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18), 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+.glass-color {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.glass-color input[type='color'] {
+    width: 48px;
+    height: 38px;
+    padding: 3px;
+    border-radius: 10px;
+    border: 1px solid var(--g-border);
+    background: rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+}
+.glass-accent-preview {
+    --pa: #6366f1;
+    --pb: #0ea5e9;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-height: 38px;
+}
+.glass-accent-button {
+    padding: 8px 18px;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 600;
+    background-image: linear-gradient(135deg, var(--pa), var(--pb));
+    box-shadow: 0 6px 18px color-mix(in srgb, var(--pa) 40%, transparent);
+}
+.glass-accent-link {
+    color: color-mix(in srgb, var(--pa) 55%, white);
+    text-decoration: underline;
+}
+.glass-accent-ring {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: conic-gradient(var(--pa) 0 68%, rgba(255, 255, 255, 0.1) 68% 100%);
+    -webkit-mask: radial-gradient(circle, transparent 54%, #000 56%);
+    mask: radial-gradient(circle, transparent 54%, #000 56%);
+}
+.glass-bg-preview {
+    width: 176px;
+    height: 99px;
+    border-radius: 16px;
+    border: 1px solid var(--g-border);
+    background: rgba(255, 255, 255, 0.04) center / cover no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--g-muted);
+    font-size: 28px;
+    flex: none;
+}
+
+/* ==========================================================================
+   Admin motion & polish (v1.1)
+   Movement is short and only on transform / opacity; everything is switched
+   off for people who ask for reduced motion (see the end of this section).
+   ========================================================================== */
+
+/* Page-to-page: the content cross-fades while the header and sidebar stay put. */
+@view-transition {
+    navigation: auto;
+}
+.main-header {
+    view-transition-name: glass-header;
+}
+.main-sidebar {
+    view-transition-name: glass-sidebar;
+}
+::view-transition-old(root) {
+    animation: glass-page-out 0.14s ease both;
+}
+::view-transition-new(root) {
+    animation: glass-page-in 0.26s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes glass-page-out {
+    to { opacity: 0; }
+}
+@keyframes glass-page-in {
+    from { opacity: 0; transform: translateY(8px); }
+}
+
+/* Loading bar across the top while the next page is fetched. */
+.glass-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 2000;
+    height: 3px;
+    width: 0;
+    opacity: 0;
+    pointer-events: none;
+    background-image: linear-gradient(90deg, rgb(var(--ac-a)), rgb(var(--ac-b-l)));
+    box-shadow: 0 0 12px rgb(var(--ac-a) / 0.7);
+    border-radius: 0 3px 3px 0;
+}
+.glass-progress.run {
+    opacity: 1;
+    width: 82%;
+    transition: width 8s cubic-bezier(0.1, 0.6, 0.1, 1);
+}
+
+/* Header gains a shadow once the page is scrolled. */
+.main-header {
+    transition: box-shadow 0.25s ease;
+}
+body.glass-scrolled .main-header {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+.main-header .sidebar-toggle {
+    transition: background 0.15s ease, transform 0.2s ease;
+    border-radius: 10px;
+}
+.main-header .sidebar-toggle:active {
+    transform: scale(0.9);
+}
+.main-header .logo .glass-brand-mark,
+.main-header .logo .glass-brand-logo {
+    transition: transform 0.35s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.main-header .logo:hover .glass-brand-mark,
+.main-header .logo:hover .glass-brand-logo {
+    transform: rotate(-6deg) scale(1.08);
+}
+
+/* Sidebar: gradient pill with a glowing marker for the current page. */
+.skin-blue .sidebar-menu > li > a {
+    position: relative;
+    transition: background 0.18s ease, color 0.18s ease, padding-left 0.18s ease;
+}
+.skin-blue .sidebar-menu > li > a > .fa,
+.skin-blue .sidebar-menu > li > a > i {
+    width: 22px;
+    transition: color 0.18s ease, transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.skin-blue .sidebar-menu > li:hover > a {
+    padding-left: 17px;
+}
+.skin-blue .sidebar-menu > li:hover > a > i {
+    color: rgb(var(--primary-300));
+    transform: scale(1.12);
+}
+.skin-blue .sidebar-menu > li.active > a {
+    background: linear-gradient(90deg, rgb(var(--ac-a) / 0.34), rgb(var(--ac-b) / 0.1)) !important;
+    box-shadow: inset 0 0 0 1px rgb(var(--ac-a-l) / 0.28);
+}
+.skin-blue .sidebar-menu > li.active > a > i {
+    color: rgb(var(--primary-200));
+}
+.skin-blue .sidebar-menu > li.active > a::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 9px;
+    bottom: 9px;
+    width: 4px;
+    border-radius: 0 4px 4px 0;
+    background: linear-gradient(180deg, rgb(var(--ac-a-l)), rgb(var(--ac-b-l)));
+    box-shadow: 0 0 12px rgb(var(--ac-a) / 0.9);
+    animation: glass-marker 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes glass-marker {
+    from { transform: scaleY(0); opacity: 0; }
+}
+.skin-blue .sidebar-menu > li {
+    animation: glass-side-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+.skin-blue .sidebar-menu > li:nth-child(2) { animation-delay: 0.02s; }
+.skin-blue .sidebar-menu > li:nth-child(3) { animation-delay: 0.04s; }
+.skin-blue .sidebar-menu > li:nth-child(4) { animation-delay: 0.06s; }
+.skin-blue .sidebar-menu > li:nth-child(5) { animation-delay: 0.08s; }
+.skin-blue .sidebar-menu > li:nth-child(6) { animation-delay: 0.1s; }
+.skin-blue .sidebar-menu > li:nth-child(7) { animation-delay: 0.12s; }
+.skin-blue .sidebar-menu > li:nth-child(8) { animation-delay: 0.14s; }
+.skin-blue .sidebar-menu > li:nth-child(9) { animation-delay: 0.16s; }
+.skin-blue .sidebar-menu > li:nth-child(n + 10) { animation-delay: 0.18s; }
+@keyframes glass-side-in {
+    from { opacity: 0; transform: translateX(-10px); }
+}
+/* The sidebar is already on screen when moving between admin pages: animate it only on first entry. */
+html.glass-returning .skin-blue .sidebar-menu > li,
+html.glass-returning .skin-blue .sidebar-menu > li.active > a::before {
+    animation: none;
+}
+
+/* Page title slides in; its accent underline draws from the left. */
+.content-header > h1 {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 10px;
+    animation: glass-title-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.content-header > h1::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 44px;
+    height: 3px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, rgb(var(--ac-a-l)), rgb(var(--ac-b-l)));
+    transform-origin: left;
+    animation: glass-underline 0.5s 0.15s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes glass-title-in {
+    from { opacity: 0; transform: translateX(-8px); }
+}
+@keyframes glass-underline {
+    from { transform: scaleX(0); }
+}
+
+/* More boxes join the staggered entrance. */
+.row > [class*='col-']:nth-child(5) > .box { animation-delay: 0.2s; }
+.row > [class*='col-']:nth-child(6) > .box { animation-delay: 0.25s; }
+.content > .row:nth-child(2) .box,
+.content > form:nth-child(2) .box { animation-delay: 0.06s; }
+.content > .row:nth-child(3) .box,
+.content > form:nth-child(3) .box { animation-delay: 0.12s; }
+.content > .row:nth-child(n + 4) .box,
+.content > form:nth-child(n + 4) .box { animation-delay: 0.18s; }
+
+/* Boxes: the border wakes up when the pointer is inside. */
+.box {
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, translate 0.25s ease;
+}
+.box:not(.box-danger):not(.box-warning):not(.box-success):hover {
+    border-color: rgba(255, 255, 255, 0.17) !important;
+}
+.box-header .box-title {
+    letter-spacing: 0.01em;
+}
+
+/* Stat cards lift and their watermark swings. */
+.glass-stat {
+    transition: translate 0.25s cubic-bezier(0.2, 0.7, 0.2, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+}
+a.glass-stat:hover,
+.glass-stat:hover {
+    translate: 0 -3px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+.glass-watermark {
+    transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.3s ease;
+}
+.glass-stat:hover .glass-watermark,
+.node-usage-card:hover .glass-watermark,
+.node-alloc:hover .glass-watermark {
+    transform: rotate(-14deg) scale(1.1);
+    opacity: 0.16;
+}
+.node-usage-card {
+    transition: translate 0.25s cubic-bezier(0.2, 0.7, 0.2, 1), border-color 0.25s ease;
+}
+.node-usage-card:hover {
+    translate: 0 -3px;
+    border-color: rgb(var(--ac-a-l) / 0.4) !important;
+}
+
+/* Rings draw themselves in. */
+.node-alloc .ring svg circle + circle {
+    animation: glass-ring 0.9s 0.15s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+@keyframes glass-ring {
+    from { stroke-dasharray: 0 400; }
+}
+
+/* Tables: rows respond to the pointer with an accent marker. */
+.table > tbody > tr {
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+.table-hover > tbody > tr:hover,
+.table > tbody > tr:hover {
+    background: rgb(var(--ac-a) / 0.09) !important;
+    box-shadow: inset 3px 0 0 rgb(var(--ac-a-l));
+}
+/* Header rows written as <tr><th> inside tbody keep their plain look. */
+.table > tbody > tr:has(> th):hover {
+    background: transparent !important;
+    box-shadow: none;
+}
+.table > tbody > tr > td > a:not(.btn) {
+    transition: color 0.15s ease;
+}
+.table > tbody > tr > td code {
+    transition: background 0.15s ease;
+}
+.table > tbody > tr:hover > td code {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Buttons: lift on hover, press on click, a light sweep on primary actions. */
+.btn {
+    position: relative;
+    overflow: hidden;
+    transition: filter 0.15s ease, background 0.15s ease, box-shadow 0.2s ease, translate 0.15s ease, scale 0.1s ease !important;
+}
+.btn:hover:not(:disabled):not(.disabled) {
+    translate: 0 -1px;
+}
+.btn:active:not(:disabled):not(.disabled) {
+    translate: 0 0;
+    scale: 0.97;
+}
+.btn-primary:hover:not(:disabled),
+.btn-success:hover:not(:disabled) {
+    box-shadow: 0 8px 22px rgb(var(--ac-a) / 0.4) !important;
+}
+.btn-primary::after,
+.btn-success::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -60%;
+    width: 40%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+    transform: skewX(-18deg);
+    pointer-events: none;
+}
+.btn-primary:hover::after,
+.btn-success:hover::after {
+    left: 130%;
+    transition: left 0.55s ease;
+}
+.btn-group[data-toggle='buttons'] > .btn::after {
+    display: none;
+}
+
+/* Form fields: the focus ring grows in the accent colour. */
+.form-control,
+.select2-container--default .select2-selection--single,
+.select2-container--default .select2-selection--multiple {
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease !important;
+}
+.form-control:hover:not(:focus):not([readonly]):not(:disabled) {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+.form-control:focus,
+.select2-container--default.select2-container--focus .select2-selection--multiple,
+.select2-container--default.select2-container--open .select2-selection--single {
+    border-color: rgb(var(--ac-a-l) / 0.8) !important;
+    box-shadow: 0 0 0 4px rgb(var(--ac-a) / 0.18) !important;
+    background: rgba(255, 255, 255, 0.07) !important;
+}
+input[type='checkbox'],
+input[type='radio'] {
+    accent-color: rgb(var(--ac-a));
+}
+::selection {
+    background: rgb(var(--ac-a) / 0.45);
+    color: #fff;
+}
+
+/* Alerts drop in from the top. */
+.alert {
+    animation: glass-alert 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes glass-alert {
+    from { opacity: 0; transform: translateY(-10px); }
+}
+
+/* Tabs and pagination. */
+.nav-tabs-custom > .nav-tabs > li > a {
+    transition: background 0.18s ease, color 0.18s ease, translate 0.15s ease;
+}
+.nav-tabs-custom > .nav-tabs > li:not(.active) > a:hover {
+    background: rgba(255, 255, 255, 0.07) !important;
+    translate: 0 -1px;
+}
+.pagination > li > a,
+.pagination > li > span {
+    transition: background 0.15s ease, color 0.15s ease, translate 0.15s ease;
+}
+.pagination > li:not(.active):not(.disabled) > a:hover {
+    translate: 0 -2px;
+    background: rgb(var(--ac-a) / 0.25) !important;
+    color: #fff !important;
+}
+
+/* Labels read as small pills. */
+.label {
+    border-radius: 999px;
+    padding: 0.25em 0.75em;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+}
+
+/* Modals and dialogs pop in. */
+.modal.fade .modal-dialog {
+    transform: translateY(14px) scale(0.97);
+    opacity: 0;
+    transition: transform 0.28s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.2s ease;
+}
+.modal.in .modal-dialog {
+    transform: none;
+    opacity: 1;
+}
+.dropdown-menu {
+    animation: glass-drop 0.18s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    transform-origin: top right;
+}
+@keyframes glass-drop {
+    from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+}
+
+/* "Checking…" while node usage loads */
+.node-usage-card [data-field='status']:not(.label-success):not(.label-danger):not(.label-warning) {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.07) 25%, rgba(255, 255, 255, 0.18) 37%, rgba(255, 255, 255, 0.07) 63%) !important;
+    background-size: 400% 100% !important;
+    animation: glass-shimmer 1.4s ease infinite;
+}
+@keyframes glass-shimmer {
+    from { background-position: 100% 50%; }
+    to { background-position: 0 50%; }
+}
+
+/* Egg → Server icon */
+.glass-egg-preview {
+    color: var(--g-green);
+    font-size: 40px;
+    transition: color 0.2s ease;
+}
+.glass-egg-preview .egg-glyph {
+    animation: glass-pop 0.3s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+@keyframes glass-pop {
+    from { transform: scale(0.6); opacity: 0; }
+}
+.glass-egg-auto {
+    font-size: 13px;
+    color: var(--g-muted);
+}
+.glass-egg-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+.glass-egg-form > .form-control {
+    flex: 1 1 220px;
+    max-width: 320px;
+    font-family: 'JetBrains Mono', monospace;
+}
+.glass-egg-color {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-weight: 400;
+    color: #c4cbe0;
+    cursor: pointer;
+}
+.glass-egg-color input[type='color'] {
+    width: 38px;
+    height: 32px;
+    padding: 2px;
+    border-radius: 8px;
+    border: 1px solid var(--g-border);
+    background: rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+}
+.glass-egg-status {
+    min-height: 18px;
+    margin: 8px 0 0;
+    color: var(--g-muted);
+}
+.glass-egg-status.ok { color: var(--g-green); }
+.glass-egg-status.bad { color: var(--g-red); }
+.glass-egg-picks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+}
+.glass-egg-pick {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--g-border);
+    background: rgba(255, 255, 255, 0.04);
+    color: #c4cbe0;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, translate 0.15s ease, border-color 0.15s ease;
+}
+.glass-egg-pick:hover {
+    background: rgb(var(--ac-a) / 0.22);
+    border-color: rgb(var(--ac-a-l) / 0.5);
+    color: #fff;
+    translate: 0 -2px;
+}
+.glass-bg-preview.is-default {
+    background:
+        radial-gradient(120px circle at 0% 100%, rgb(var(--ac-a) / 0.6), transparent 70%),
+        radial-gradient(110px circle at 100% 0%, rgb(var(--ac-b-l) / 0.4), transparent 70%),
+        radial-gradient(100px circle at 55% 120%, rgb(var(--ac-c) / 0.4), transparent 70%), #070b14;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    @view-transition {
+        navigation: none;
+    }
+    .skin-blue .sidebar-menu > li,
+    .skin-blue .sidebar-menu > li.active > a::before,
+    .content-header > h1,
+    .content-header > h1::after,
+    .alert,
+    .dropdown-menu,
+    .node-alloc .ring svg circle + circle,
+    .glass-egg-preview .egg-glyph,
+    .node-usage-card [data-field='status'] {
+        animation: none !important;
+    }
+    .btn,
+    .box,
+    .glass-stat,
+    .node-usage-card,
+    .glass-watermark,
+    .modal.fade .modal-dialog,
+    .glass-progress.run {
+        transition: none !important;
+    }
+    .btn-primary::after,
+    .btn-success::after {
+        display: none;
+    }
+}
+
+@media (max-width: 767px) {
+    /* The title is inline-block for its underline; keep the breadcrumb on its own line. */
+    .content-header > .breadcrumb {
+        display: flex;
+        width: fit-content;
+    }
+}
+@media (max-width: 767px) {
+    /* Keep the overview's link buttons on one line. */
+    .content .btn > small {
+        display: none;
     }
 }

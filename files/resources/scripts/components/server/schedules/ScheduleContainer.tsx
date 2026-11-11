@@ -14,6 +14,9 @@ import GreyRowBox from '@/components/elements/GreyRowBox';
 import { Button } from '@/components/elements/button/index';
 import ServerContentBlock from '@/components/elements/ServerContentBlock';
 
+import { SkeletonList } from '@/components/elements/Skeleton';
+import EmptyState from '@/components/elements/EmptyState';
+import { faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
 import { __ } from '@/i18n';
 export default () => {
     const match = useRouteMatch();
@@ -42,13 +45,15 @@ export default () => {
         <ServerContentBlock title={__('Schedules')}>
             <FlashMessageRender byKey={'schedules'} css={tw`mb-4`} />
             {!schedules.length && loading ? (
-                <Spinner size={'large'} centered />
+                <SkeletonList rows={3} />
             ) : (
                 <>
                     {schedules.length === 0 ? (
-                        <p css={tw`text-sm text-center text-neutral-300`}>
-                            {__('There are no schedules configured for this server.')}
-                        </p>
+                        <EmptyState
+                            icon={faCalendarAlt}
+                            title={__('No schedules yet')}
+                            message={__('Schedules run commands, restarts and backups automatically at the times you choose.')}
+                        />
                     ) : (
                         schedules.map((schedule) => (
                             <GreyRowBox

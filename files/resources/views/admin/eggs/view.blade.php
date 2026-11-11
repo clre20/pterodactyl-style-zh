@@ -51,6 +51,53 @@
         </div>
     </div>
 </form>
+@php($eggIcon = \Pterodactyl\Extensions\Themes\EggIcons::get($egg->id))
+<form action="{{ route('admin.nests.egg.icon', $egg->id) }}" method="POST" id="eggIconForm">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{ __('Server Icon') }}</h3>
+                </div>
+                <div class="box-body">
+                    <div class="glass-logo-row">
+                        <div class="glass-logo-preview glass-egg-preview" id="eggIconPreview" style="@if($eggIcon && $eggIcon['color'])color: {{ $eggIcon['color'] }};@endif">
+                            @if($eggIcon)
+                                <span class="egg-glyph {{ $eggIcon['style'] }}">{{ $eggIcon['glyph'] }}</span>
+                            @else
+                                <span class="glass-egg-auto">{{ __('Auto') }}</span>
+                            @endif
+                        </div>
+                        <div class="glass-logo-actions">
+                            <p class="text-muted small">{!! __('Shown on the server list for every server that uses this egg. Type the name of an icon from :link, for example :example, or paste the code copied from that site. Leave empty to let the panel pick an icon automatically.', ['link' => '<a href="https://fontawesome.com/search?o=r&m=free" target="_blank" rel="noopener">Font Awesome Free</a>', 'example' => '<code>cube</code>']) !!}</p>
+                            <div class="glass-egg-form">
+                                <input type="text" class="form-control" name="icon" id="eggIconInput" maxlength="120" autocomplete="off" spellcheck="false"
+                                       value="{{ old('icon', $eggIcon ? ($eggIcon['style'] === 'b' ? 'fa-brands fa-' : ($eggIcon['style'] === 'r' ? 'fa-regular fa-' : '')) . $eggIcon['name'] : '') }}" placeholder="cube">
+                                <label class="glass-egg-color">
+                                    <input type="hidden" name="icon_color_enabled" value="0">
+                                    <input type="checkbox" name="icon_color_enabled" id="eggIconColorOn" value="1" @if($eggIcon && $eggIcon['color']) checked @endif>
+                                    {{ __('Custom colour') }}
+                                    <input type="color" name="icon_color" id="eggIconColor" value="{{ old('icon_color', $eggIcon['color'] ?? '#6ee7b7') }}">
+                                </label>
+                                {!! csrf_field() !!}
+                                <button type="submit" class="btn btn-sm btn-primary">{{ __('Save') }}</button>
+                            </div>
+                            <p class="glass-egg-status small" id="eggIconStatus" aria-live="polite"></p>
+                            <div class="glass-egg-picks">
+                                @foreach (['cube', 'gamepad', 'dragon', 'ghost', 'rocket', 'robot', 'microchip', 'brain', 'database', 'globe', 'code', 'terminal', 'music', 'fa-brands fa-discord', 'fa-brands fa-python', 'fa-brands fa-java', 'fa-brands fa-node-js', 'fa-brands fa-steam'] as $pick)
+                                    @php($pickIcon = \Pterodactyl\Extensions\Themes\EggIcons::parse($pick))
+                                    @if($pickIcon)
+                                        <button type="button" class="glass-egg-pick" data-icon="{{ $pick }}" title="{{ $pickIcon['name'] }}"><span class="egg-glyph {{ $pickIcon['style'] }}">{{ $pickIcon['glyph'] }}</span></button>
+                                    @endif
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
 <form action="{{ route('admin.nests.egg.view', $egg->id) }}" method="POST">
     <div class="row">
         <div class="col-xs-12">
@@ -218,5 +265,47 @@
         selectOnClose: false,
         tokenSeparators: [',', ' '],
     });
+    </script>
+    <script>
+        // Live preview for the server icon: asks the panel which Font Awesome icon the text names.
+        (function () {
+            var input = document.getElementById('eggIconInput');
+            if (!input) return;
+            var preview = document.getElementById('eggIconPreview');
+            var status = document.getElementById('eggIconStatus');
+            var colorOn = document.getElementById('eggIconColorOn');
+            var color = document.getElementById('eggIconColor');
+            var T = { auto: @json(__('Auto')), unknown: @json(__('No free icon with that name.')), found: @json(__('Icon: :name')) };
+            var timer, request = 0;
+            function paintColor() { preview.style.color = colorOn.checked ? color.value : ''; }
+            function show(icon) {
+                preview.textContent = '';
+                var el = document.createElement('span');
+                if (icon) { el.className = 'egg-glyph ' + icon.style; el.textContent = icon.glyph; }
+                else { el.className = 'glass-egg-auto'; el.textContent = T.auto; }
+                preview.appendChild(el);
+            }
+            function lookup() {
+                var value = input.value.trim();
+                if (!value) { show(null); status.textContent = ''; status.className = 'glass-egg-status small'; return; }
+                var mine = ++request;
+                fetch(@json(route('admin.nests.egg.icon.preview', [], false)) + '?icon=' + encodeURIComponent(value), { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+                    .then(function (r) { return r.json(); })
+                    .then(function (json) {
+                        if (mine !== request) return;
+                        show(json.icon);
+                        status.textContent = json.icon ? T.found.replace(':name', json.icon.name) : T.unknown;
+                        status.className = 'glass-egg-status small ' + (json.icon ? 'ok' : 'bad');
+                    })
+                    .catch(function () {});
+            }
+            input.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(lookup, 250); });
+            colorOn.addEventListener('change', paintColor);
+            color.addEventListener('input', function () { colorOn.checked = true; paintColor(); });
+            document.querySelectorAll('.glass-egg-pick').forEach(function (el) {
+                el.addEventListener('click', function () { input.value = el.dataset.icon; lookup(); });
+            });
+            paintColor();
+        })();
     </script>
 @endsection

@@ -11,9 +11,7 @@
             <meta name="robots" content="noindex">
             @include('partials.favicons')
             <meta name="theme-color" content="#070b14">
-            <link rel="preconnect" href="https://fonts.googleapis.com">
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+            <link rel="stylesheet" href="{{ \Pterodactyl\Extensions\Themes\Brand::asset('css/fonts.css') }}">
         @show
 
         @section('user-data')
@@ -32,6 +30,10 @@
                     window.BrandLogo = @json($brandLogo);
                 </script>
             @endif
+            <style id="theme-vars">{!! \Pterodactyl\Extensions\Themes\ThemeSettings::cssVariables() !!}</style>
+            <script>
+                window.ThemeConfig = @json(\Pterodactyl\Extensions\Themes\ThemeSettings::forClient());
+            </script>
         @show
 
         @yield('assets')

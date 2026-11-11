@@ -23,7 +23,7 @@ export default ({ size = 34 }: { size?: number }) =>
             width: size,
             height: size,
             borderRadius: Math.round(size * 0.3),
-            backgroundImage: 'linear-gradient(135deg, #818cf8, #22d3ee)',
+            backgroundImage: 'linear-gradient(135deg, rgb(var(--ac-a-l)), rgb(var(--ac-b-l)))',
         }}
     >
         <svg

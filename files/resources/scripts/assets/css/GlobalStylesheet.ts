@@ -8,9 +8,26 @@ export default createGlobalStyle`
         --glass-border: rgba(255, 255, 255, 0.1);
         --glass-blur: blur(22px) saturate(140%);
         --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-        --accent: #818cf8;
-        --accent-strong: #6366f1;
-        --accent-2: #22d3ee;
+        /* Accent colours as "r g b" triplets. These are the defaults; the page injects the values
+           chosen under Admin → Settings → Appearance right after this stylesheet. */
+        --ac-a: 99 102 241;
+        --ac-a-l: 129 140 248;
+        --ac-b: 14 165 233;
+        --ac-b-l: 62 183 237;
+        --ac-c: 168 85 247;
+        --primary-50: 238 238 254;
+        --primary-100: 224 224 252;
+        --primary-200: 196 197 250;
+        --primary-300: 177 179 248;
+        --primary-400: 136 139 244;
+        --primary-500: 99 102 241;
+        --primary-600: 87 89 211;
+        --primary-700: 72 75 177;
+        --primary-800: 60 62 147;
+        --primary-900: 49 52 122;
+        --accent: rgb(var(--ac-a-l));
+        --accent-strong: rgb(var(--ac-a));
+        --accent-2: rgb(var(--ac-b-l));
         --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
     }
 
@@ -41,10 +58,13 @@ export default createGlobalStyle`
         pointer-events: none;
         transform: translateZ(0);
         will-change: transform;
-        background:
-            radial-gradient(680px circle at 6% -6%, rgba(99, 102, 241, 0.46), transparent 70%),
-            radial-gradient(600px circle at 102% 30%, rgba(34, 211, 238, 0.26), transparent 70%),
-            radial-gradient(660px circle at 46% 112%, rgba(168, 85, 247, 0.3), transparent 70%);
+        /* --page-bg is set when the owner uploaded a page background (Settings → Appearance). */
+        background: var(
+            --page-bg,
+            radial-gradient(680px circle at 6% -6%, rgb(var(--ac-a) / 0.46), transparent 70%),
+            radial-gradient(600px circle at 102% 30%, rgb(var(--ac-b-l) / 0.26), transparent 70%),
+            radial-gradient(660px circle at 46% 112%, rgb(var(--ac-c) / 0.3), transparent 70%)
+        );
     }
 
     /* Phones and tablets: blurring the fixed background behind every card while scrolling
@@ -63,7 +83,7 @@ export default createGlobalStyle`
     }
 
     ::selection {
-        background: rgba(129, 140, 248, 0.45);
+        background: rgb(var(--ac-a-l) / 0.45);
         color: #fff;
     }
 
@@ -89,7 +109,7 @@ export default createGlobalStyle`
 
     a, button, input, select, textarea {
         &:focus-visible {
-            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.45);
+            box-shadow: 0 0 0 3px rgb(var(--ac-a-l) / 0.45);
         }
     }
 
@@ -146,12 +166,95 @@ export default createGlobalStyle`
     }
 
     .accent-gradient {
-        background-image: linear-gradient(135deg, #6366f1, #0ea5e9);
+        background-image: linear-gradient(135deg, rgb(var(--ac-a)), rgb(var(--ac-b)));
     }
 
     /* The login card shows the reCAPTCHA notice itself, so the floating badge can go. */
     .grecaptcha-badge {
         visibility: hidden !important;
+    }
+
+    /* Loading placeholders */
+    .skeleton {
+        background: linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.07) 25%,
+            rgba(255, 255, 255, 0.16) 37%,
+            rgba(255, 255, 255, 0.07) 63%
+        );
+        background-size: 400% 100%;
+        animation: skeleton-shimmer 1.4s ease infinite;
+    }
+    @keyframes skeleton-shimmer {
+        from { background-position: 100% 50%; }
+        to { background-position: 0 50%; }
+    }
+
+    /* Server state: a breathing dot while running, a sweep while starting or stopping */
+    .state-dot {
+        position: relative;
+        display: inline-block;
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 9999px;
+        background: currentColor;
+        flex: none;
+    }
+    .state-dot.live::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: currentColor;
+        animation: state-ping 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+    @keyframes state-ping {
+        0% { transform: scale(1); opacity: 0.7; }
+        80%, 100% { transform: scale(2.8); opacity: 0; }
+    }
+    .state-busy {
+        position: relative;
+        overflow: hidden;
+    }
+    .state-busy::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #fcd34d, transparent);
+        background-size: 50% 100%;
+        background-repeat: no-repeat;
+        animation: state-sweep 1.6s ease-in-out infinite;
+    }
+    @keyframes state-sweep {
+        from { background-position: -50% 0; }
+        to { background-position: 150% 0; }
+    }
+
+    /* Line drawings on full-page messages */
+    .error-art .turn {
+        transform-origin: 100px 100px;
+    }
+    .error-art.busy .turn {
+        animation: error-art-turn 6s linear infinite;
+    }
+    .error-art .spark {
+        animation: error-art-spark 1.8s ease-in-out infinite;
+    }
+    @keyframes error-art-turn {
+        to { transform: rotate(360deg); }
+    }
+    @keyframes error-art-spark {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.25; }
+    }
+    .accent-text {
+        background-image: linear-gradient(135deg, rgb(var(--primary-200)), rgb(var(--ac-b-l)));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
     }
 
     .hide-scrollbar {
@@ -189,7 +292,10 @@ export default createGlobalStyle`
     .stagger > *:nth-child(n + 6) { animation-delay: 0.25s; }
 
     @media (prefers-reduced-motion: reduce) {
-        .enter, .stagger > * {
+        .enter, .stagger > *,
+        .skeleton,
+        .error-art.busy .turn, .error-art .spark,
+        .state-dot.live::after, .state-busy::after {
             animation: none;
         }
     }

@@ -13,6 +13,7 @@ import ActivityLogEntry from '@/components/elements/activity/ActivityLogEntry';
 import Tooltip from '@/components/elements/tooltip/Tooltip';
 import useLocationHash from '@/plugins/useLocationHash';
 
+import { SkeletonList } from '@/components/elements/Skeleton';
 import { __ } from '@/i18n';
 export default () => {
     const { hash } = useLocationHash();
@@ -46,7 +47,7 @@ export default () => {
                 </div>
             )}
             {!data && isValidating ? (
-                <Spinner centered />
+                <SkeletonList rows={6} />
             ) : (
                 <div className={'glass rounded-2xl overflow-hidden enter'}>
                     {data?.items.map((activity) => (

@@ -28,6 +28,8 @@ const StatCard = ({ label, value, icon, color }: { label: string; value: React.R
     </div>
 );
 
+import { SkeletonList } from '@/components/elements/Skeleton';
+import EmptyState from '@/components/elements/EmptyState';
 import { __ } from '@/i18n';
 export default () => {
     const { search } = useLocation();
@@ -112,7 +114,7 @@ export default () => {
                 </div>
             )}
             {!servers ? (
-                <Spinner centered size={'large'} />
+                <SkeletonList rows={3} variant={'card'} />
             ) : (
                 <Pagination data={servers} onPageSelect={setPage}>
                     {({ items }) =>
@@ -123,11 +125,29 @@ export default () => {
                                 ))}
                             </div>
                         ) : (
-                            <p css={tw`text-center text-sm text-neutral-400`}>
-                                {showOnlyAdmin
-                                    ? __('There are no other servers to display.')
-                                    : __('There are no servers associated with your account.')}
-                            </p>
+                            <EmptyState
+                                icon={faServer}
+                                tone={'accent'}
+                                title={showOnlyAdmin ? __('No other servers') : __('No servers yet')}
+                                message={
+                                    showOnlyAdmin
+                                        ? __('There are no other servers to display.')
+                                        : rootAdmin
+                                        ? __('Create your first server in the admin area and it will appear here.')
+                                        : __('There are no servers associated with your account.')
+                                }
+                            >
+                                {rootAdmin && !showOnlyAdmin && (
+                                    <a
+                                        href={'/admin/servers/new'}
+                                        className={
+                                            'accent-gradient inline-flex items-center rounded-xl px-4 py-2 text-sm font-semibold text-white no-underline'
+                                        }
+                                    >
+                                        {__('Create a server')}
+                                    </a>
+                                )}
+                            </EmptyState>
                         )
                     }
                 </Pagination>

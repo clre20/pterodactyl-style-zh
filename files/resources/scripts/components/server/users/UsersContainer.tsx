@@ -12,6 +12,9 @@ import Can from '@/components/elements/Can';
 import ServerContentBlock from '@/components/elements/ServerContentBlock';
 import tw from 'twin.macro';
 
+import { SkeletonList } from '@/components/elements/Skeleton';
+import EmptyState from '@/components/elements/EmptyState';
+import { faUserFriends } from '@fortawesome/free-solid-svg-icons';
 import { __ } from '@/i18n';
 export default () => {
     const [loading, setLoading] = useState(true);
@@ -45,14 +48,22 @@ export default () => {
     }, []);
 
     if (!subusers.length && (loading || !Object.keys(permissions).length)) {
-        return <Spinner size={'large'} centered />;
+        return (
+            <ServerContentBlock title={__('Users')}>
+                <SkeletonList rows={3} />
+            </ServerContentBlock>
+        );
     }
 
     return (
         <ServerContentBlock title={__('Users')}>
             <FlashMessageRender byKey={'users'} css={tw`mb-4`} />
             {!subusers.length ? (
-                <p css={tw`text-center text-sm text-neutral-300`}>{__('It looks like you don\'t have any subusers.')}</p>
+                <EmptyState
+                    icon={faUserFriends}
+                    title={__('No other users yet')}
+                    message={__('Invite people to help manage this server and choose exactly what each of them may do.')}
+                />
             ) : (
                 subusers.map((subuser) => <UserRow key={subuser.uuid} subuser={subuser} />)
             )}

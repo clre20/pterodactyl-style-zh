@@ -13,6 +13,9 @@ import Fade from '@/components/elements/Fade';
 import ServerContentBlock from '@/components/elements/ServerContentBlock';
 import { useDeepMemoize } from '@/plugins/useDeepMemoize';
 
+import { SkeletonList } from '@/components/elements/Skeleton';
+import EmptyState from '@/components/elements/EmptyState';
+import { faDatabase } from '@fortawesome/free-solid-svg-icons';
 import { __ } from '@/i18n';
 export default () => {
     const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
@@ -41,7 +44,7 @@ export default () => {
         <ServerContentBlock title={__('Databases')}>
             <FlashMessageRender byKey={'databases'} css={tw`mb-4`} />
             {!databases.length && loading ? (
-                <Spinner size={'large'} centered />
+                <SkeletonList rows={2} />
             ) : (
                 <Fade timeout={150}>
                     <>
@@ -54,11 +57,15 @@ export default () => {
                                 />
                             ))
                         ) : (
-                            <p css={tw`text-center text-sm text-neutral-300`}>
-                                {databaseLimit > 0
-                                    ? __('It looks like you have no databases.')
-                                    : __('Databases cannot be created for this server.')}
-                            </p>
+                            <EmptyState
+                                icon={faDatabase}
+                                title={databaseLimit > 0 ? __('No databases yet') : __('Databases are not available')}
+                                message={
+                                    databaseLimit > 0
+                                        ? __('Create a database for plugins or applications that need to store data.')
+                                        : __('Databases cannot be created for this server.')
+                                }
+                            />
                         )}
                         <Can action={'database.create'}>
                             <div css={tw`mt-6 flex items-center justify-end`}>

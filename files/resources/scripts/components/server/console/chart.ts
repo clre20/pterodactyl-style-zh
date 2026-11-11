@@ -9,6 +9,7 @@ import {
     PointElement,
 } from 'chart.js';
 import { DeepPartial } from 'ts-essentials';
+import { accentColor } from '@/lib/theme';
 import { useState } from 'react';
 import { deepmerge, deepmergeCustom } from 'deepmerge-ts';
 import { theme } from 'twin.macro';
@@ -92,8 +93,8 @@ function getEmptyData(label: string, sets = 1, callback?: ChartDatasetCallback |
                         fill: true,
                         label,
                         data: Array(20).fill(-5),
-                        borderColor: '#818cf8',
-                        backgroundColor: 'rgba(129, 140, 248, 0.16)',
+                        borderColor: accentColor('--ac-a-l'),
+                        backgroundColor: accentColor('--ac-a-l', 0.16),
                     },
                     index
                 )

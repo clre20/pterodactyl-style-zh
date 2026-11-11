@@ -11,6 +11,7 @@ import styled from 'styled-components/macro';
 import http from '@/api/http';
 import SpinnerOverlay from '@/components/elements/SpinnerOverlay';
 import Tooltip from '@/components/elements/tooltip/Tooltip';
+import Announcement from '@/components/elements/Announcement';
 import BrandMark from '@/components/elements/BrandMark';
 import LanguageSwitcher from '@/components/elements/LanguageSwitcher';
 
@@ -28,7 +29,7 @@ const RightNavigation = styled.div`
 
         &.active {
             ${tw`text-white`};
-            background: rgba(129, 140, 248, 0.18);
+            background: rgb(var(--ac-a-l) / 0.18);
         }
     }
 `;
@@ -89,6 +90,7 @@ export default () => {
                     </Tooltip>
                 </RightNavigation>
             </div>
+            <Announcement />
         </div>
     );
 };

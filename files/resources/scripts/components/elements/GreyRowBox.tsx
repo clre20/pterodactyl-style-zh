@@ -11,12 +11,12 @@ export default styled.div<{ $hoverable?: boolean }>`
 
     ${(props) =>
         props.$hoverable !== false &&
-        `&:hover { background: rgba(255, 255, 255, 0.085); border-color: rgba(129, 140, 248, 0.35); transform: translateY(-1px); }`};
+        `&:hover { background: rgba(255, 255, 255, 0.085); border-color: rgb(var(--ac-a-l) / 0.35); transform: translateY(-1px); }`};
 
     & .icon {
         ${tw`rounded-xl w-12 h-12 flex items-center justify-center p-3 flex-none`};
-        background: rgba(129, 140, 248, 0.16);
-        border: 1px solid rgba(129, 140, 248, 0.35);
-        color: #a5b4fc;
+        background: rgb(var(--ac-a-l) / 0.16);
+        border: 1px solid rgb(var(--ac-a-l) / 0.35);
+        color: rgb(var(--primary-300));
     }
 `;

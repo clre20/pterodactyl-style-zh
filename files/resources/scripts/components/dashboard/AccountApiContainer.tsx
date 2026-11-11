@@ -15,6 +15,8 @@ import { Dialog } from '@/components/elements/dialog';
 import { useFlashKey } from '@/plugins/useFlash';
 import Code from '@/components/elements/Code';
 
+import { SkeletonList } from '@/components/elements/Skeleton';
+import EmptyState from '@/components/elements/EmptyState';
 import { __ } from '@/i18n';
 export default () => {
     const [deleteIdentifier, setDeleteIdentifier] = useState('');
@@ -61,9 +63,16 @@ export default () => {
                         {__('All requests using the')} <Code>{deleteIdentifier}</Code> {__('key will be invalidated.')}
                     </Dialog.Confirm>
                     {keys.length === 0 ? (
-                        <p css={tw`text-center text-sm`}>
-                            {loading ? __('Loading...') : __('No API keys exist for this account.')}
-                        </p>
+                        loading ? (
+                            <SkeletonList rows={2} />
+                        ) : (
+                            <EmptyState
+                                bare
+                                icon={faKey}
+                                title={__('No API keys yet')}
+                                message={__('API keys let scripts and other applications use the panel on your behalf.')}
+                            />
+                        )
                     ) : (
                         keys.map((key, index) => (
                             <GreyRowBox

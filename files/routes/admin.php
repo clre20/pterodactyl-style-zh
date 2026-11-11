@@ -72,6 +72,10 @@ Route::group(['prefix' => 'settings'], function () {
     Route::get('/advanced', [Admin\Settings\AdvancedController::class, 'index'])->name('admin.settings.advanced');
 
     Route::post('/mail/test', [Admin\Settings\MailController::class, 'test'])->name('admin.settings.mail.test');
+    Route::get('/appearance', [Admin\Settings\AppearanceController::class, 'index'])->name('admin.settings.appearance');
+    Route::patch('/appearance', [Admin\Settings\AppearanceController::class, 'update']);
+    Route::post('/appearance/background', [Admin\Settings\AppearanceController::class, 'storeBackground'])->name('admin.settings.appearance.background');
+    Route::delete('/appearance/background', [Admin\Settings\AppearanceController::class, 'destroyBackground']);
     Route::post('/branding', [Admin\Settings\BrandingController::class, 'store'])->name('admin.settings.branding');
     Route::delete('/branding', [Admin\Settings\BrandingController::class, 'destroy'])->name('admin.settings.branding.delete');
 
@@ -209,7 +213,9 @@ Route::group(['prefix' => 'nests'], function () {
     Route::get('/new', [Admin\Nests\NestController::class, 'create'])->name('admin.nests.new');
     Route::get('/view/{nest:id}', [Admin\Nests\NestController::class, 'view'])->name('admin.nests.view');
     Route::get('/egg/new', [Admin\Nests\EggController::class, 'create'])->name('admin.nests.egg.new');
+    Route::get('/egg-icon/preview', [Admin\Nests\EggIconController::class, 'preview'])->name('admin.nests.egg.icon.preview');
     Route::get('/egg/{egg:id}', [Admin\Nests\EggController::class, 'view'])->name('admin.nests.egg.view');
+    Route::post('/egg/{egg:id}/icon', [Admin\Nests\EggIconController::class, 'update'])->name('admin.nests.egg.icon');
     Route::get('/egg/{egg:id}/export', [Admin\Nests\EggShareController::class, 'export'])->name('admin.nests.egg.export');
     Route::get('/egg/{egg:id}/variables', [Admin\Nests\EggVariableController::class, 'view'])->name('admin.nests.egg.variables');
     Route::get('/egg/{egg:id}/scripts', [Admin\Nests\EggScriptController::class, 'index'])->name('admin.nests.egg.scripts');

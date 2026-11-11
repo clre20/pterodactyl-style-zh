@@ -30,7 +30,7 @@ class BrandingController extends Controller
         if (!is_dir($directory) && !@mkdir($directory, 0755, true)) {
             $this->alert->danger(__('Unable to save the logo. Make sure the web server can write to :path.', ['path' => $directory]))->flash();
 
-            return redirect()->route('admin.settings');
+            return redirect()->route('admin.settings.appearance');
         }
 
         $this->removeExisting();
@@ -42,12 +42,12 @@ class BrandingController extends Controller
         } catch (\Throwable) {
             $this->alert->danger(__('Unable to save the logo. Make sure the web server can write to :path.', ['path' => $directory]))->flash();
 
-            return redirect()->route('admin.settings');
+            return redirect()->route('admin.settings.appearance');
         }
 
         $this->alert->success(__('The logo has been updated.'))->flash();
 
-        return redirect()->route('admin.settings');
+        return redirect()->route('admin.settings.appearance');
     }
 
     public function destroy(): RedirectResponse
@@ -55,7 +55,7 @@ class BrandingController extends Controller
         $this->removeExisting();
         $this->alert->success(__('The custom logo has been removed and the default logo restored.'))->flash();
 
-        return redirect()->route('admin.settings');
+        return redirect()->route('admin.settings.appearance');
     }
 
     private function removeExisting(): void

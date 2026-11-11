@@ -30,7 +30,7 @@ const SubNavigation = styled.div`
             &:active,
             &.active {
                 ${tw`text-white`};
-                background: rgba(129, 140, 248, 0.22);
+                background: rgb(var(--ac-a-l) / 0.22);
             }
         }
     }

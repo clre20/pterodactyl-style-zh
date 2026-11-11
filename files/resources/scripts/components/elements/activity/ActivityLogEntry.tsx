@@ -56,7 +56,7 @@ export default ({ activity, children }: Props) => {
                     }
                     style={{
                         background: actor
-                            ? 'linear-gradient(135deg, rgba(129,140,248,.85), rgba(34,211,238,.7))'
+                            ? 'linear-gradient(135deg, rgb(var(--ac-a-l) / .85), rgb(var(--ac-b-l) / .7))'
                             : 'rgba(255,255,255,.08)',
                     }}
                     aria-hidden

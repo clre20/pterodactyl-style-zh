@@ -13,6 +13,14 @@ const gray = {
     900: 'hsl(230, 42%, 6%)',
 };
 
+// The accent ("primary") palette comes from CSS variables so it can be changed from
+// Admin → Settings → Appearance without rebuilding the frontend.
+const themed = (name) => ({ opacityValue }) =>
+    opacityValue === undefined ? `rgb(var(${name}))` : `rgb(var(${name}) / ${opacityValue})`;
+const primary = Object.fromEntries(
+    [50, 100, 200, 300, 400, 500, 600, 700, 800, 900].map((step) => [step, themed(`--primary-${step}`)])
+);
+
 module.exports = {
     content: [
         './resources/scripts/**/*.{js,ts,tsx}',
@@ -28,7 +36,7 @@ module.exports = {
                 black: '#05080f',
                 // "primary" and "neutral" are deprecated, prefer the use of "blue" and "gray"
                 // in new code.
-                primary: colors.indigo,
+                primary: primary,
                 gray: gray,
                 neutral: gray,
                 cyan: colors.cyan,

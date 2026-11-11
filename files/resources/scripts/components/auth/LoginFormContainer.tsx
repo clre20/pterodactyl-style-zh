@@ -7,6 +7,8 @@ import { ApplicationStore } from '@/state';
 import LanguageSwitcher from '@/components/elements/LanguageSwitcher';
 import BrandMark from '@/components/elements/BrandMark';
 
+import { themeConfig } from '@/lib/theme';
+import SiteFooter from '@/components/elements/SiteFooter';
 import { __ } from '@/i18n';
 type Props = React.DetailedHTMLProps<React.FormHTMLAttributes<HTMLFormElement>, HTMLFormElement> & {
     title?: string;
@@ -18,6 +20,17 @@ export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => 
 
     return (
         <div css={tw`relative min-h-screen flex flex-col items-center justify-center px-4 py-20`}>
+            {themeConfig.loginBackground && (
+                // Custom background from Admin → Settings → Appearance, darkened so the card stays readable.
+                <div
+                    aria-hidden
+                    css={tw`fixed inset-0 pointer-events-none bg-cover bg-center`}
+                    style={{
+                        zIndex: -1,
+                        backgroundImage: `linear-gradient(rgba(7, 11, 20, 0.5), rgba(7, 11, 20, 0.82)), url("${themeConfig.loginBackground}")`,
+                    }}
+                />
+            )}
             <div css={tw`absolute top-4 right-4 sm:top-6 sm:right-6`}>
                 <LanguageSwitcher variant={'segmented'} />
             </div>
@@ -25,7 +38,10 @@ export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => 
             <div
                 className={'glass-strong enter'}
                 css={tw`w-full rounded-3xl overflow-hidden grid md:grid-cols-2`}
-                style={{ maxWidth: 880 }}
+                style={{
+                    maxWidth: 880,
+                    ...(themeConfig.loginBackground ? { background: 'rgba(10, 14, 26, 0.74)' } : {}),
+                }}
             >
                 {/* Brand panel: beside the form on wide screens, a compact header on phones. */}
                 <div
@@ -36,7 +52,7 @@ export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => 
                         css={tw`hidden md:block absolute inset-0 pointer-events-none`}
                         style={{
                             background:
-                                'radial-gradient(420px circle at 30% 20%, rgba(129,140,248,.28), transparent 70%), radial-gradient(360px circle at 80% 90%, rgba(34,211,238,.18), transparent 70%)',
+                                'radial-gradient(420px circle at 30% 20%, rgb(var(--ac-a-l) / .28), transparent 70%), radial-gradient(360px circle at 80% 90%, rgb(var(--ac-b-l) / .18), transparent 70%)',
                             borderRight: '1px solid rgba(255,255,255,.06)',
                         }}
                     />
@@ -48,7 +64,7 @@ export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => 
                     </span>
                     <div css={tw`relative`}>
                         <p css={tw`text-xl md:text-3xl font-bold text-neutral-50 leading-tight`}>{name}</p>
-                        <p css={tw`mt-1 md:mt-2 text-sm text-neutral-400`}>{__('Server control panel')}</p>
+                        <p css={tw`mt-1 md:mt-2 text-sm text-neutral-400`}>{themeConfig.loginSubtitle || __('Server control panel')}</p>
                     </div>
                 </div>
 
@@ -84,17 +100,7 @@ export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => 
                 </div>
             </div>
 
-            <p css={tw`text-center text-neutral-500 text-xs mt-6`}>
-                &copy; {new Date().getFullYear()} {name} &middot; {__('Powered by')}{' '}
-                <a
-                    rel={'noopener nofollow noreferrer'}
-                    href={'https://pterodactyl.io'}
-                    target={'_blank'}
-                    css={tw`no-underline text-neutral-500 hover:text-neutral-300`}
-                >
-                    Pterodactyl
-                </a>
-            </p>
+            <SiteFooter css={tw`mt-6`} />
         </div>
     );
 });

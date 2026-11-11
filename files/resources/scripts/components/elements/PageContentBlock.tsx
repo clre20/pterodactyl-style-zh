@@ -5,7 +5,8 @@ import tw from 'twin.macro';
 import FlashMessageRender from '@/components/FlashMessageRender';
 import classNames from 'classnames';
 
-import { __ } from '@/i18n';
+import SiteFooter from '@/components/elements/SiteFooter';
+
 export interface PageContentBlockProps {
     title?: string;
     className?: string;
@@ -27,17 +28,7 @@ const PageContentBlock: React.FC<PageContentBlockProps> = ({ title, showFlashKey
                     {children}
                 </ContentContainer>
                 <ContentContainer css={tw`mb-4`}>
-                    <p css={tw`text-center text-neutral-500 text-xs`}>
-                        <a
-                            rel={'noopener nofollow noreferrer'}
-                            href={'https://pterodactyl.io'}
-                            target={'_blank'}
-                            css={tw`no-underline text-neutral-500 hover:text-neutral-300`}
-                        >
-                            {__('Pterodactyl®')}
-                        </a>
-                        &nbsp;&copy; 2015 - {new Date().getFullYear()}
-                    </p>
+                    <SiteFooter />
                 </ContentContainer>
             </>
         </CSSTransition>

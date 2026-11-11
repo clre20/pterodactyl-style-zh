@@ -20,8 +20,8 @@ const ButtonStyle = styled.button<Omit<Props, 'isLoading'>>`
                 !props.isSecondary &&
                 css`
                     ${tw`border-transparent text-white`};
-                    background-image: linear-gradient(135deg, #6366f1, #0ea5e9);
-                    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+                    background-image: linear-gradient(135deg, rgb(var(--ac-a)), rgb(var(--ac-b)));
+                    box-shadow: 0 6px 20px rgb(var(--ac-a) / 0.3);
                 `};
 
             &:hover:not(:disabled) {
