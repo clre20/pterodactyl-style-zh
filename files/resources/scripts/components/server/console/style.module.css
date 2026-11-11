@@ -32,6 +32,8 @@
 
     & > .container {
         @apply rounded-t-2xl p-2 sm:p-3 min-h-[18rem] flex-1 font-mono text-sm;
+        /* On phones the tool buttons sit above the first log line instead of over it. */
+        @apply pt-11 sm:pt-3;
         background: rgba(3, 6, 14, 0.66);
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-bottom: 0;
@@ -49,12 +51,89 @@
         }
     }
 
+    & .quick_bar {
+        @apply flex items-center gap-2 px-3 py-1.5;
+        background: rgba(3, 6, 14, 0.58);
+        border-left: 1px solid rgba(255, 255, 255, 0.08);
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    & .quick_chip {
+        @apply flex-none whitespace-nowrap rounded-lg px-2.5 py-1 font-mono text-xs text-neutral-200 transition-colors duration-150;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+
+        &:hover:not(:disabled) {
+            background: rgb(var(--ac-a) / 0.3);
+            border-color: rgb(var(--ac-a) / 0.5);
+            @apply text-white;
+        }
+
+        &:disabled {
+            @apply opacity-50 cursor-not-allowed;
+        }
+    }
+
+    & .quick_chip_editing {
+        @apply text-red-200;
+        border-color: rgba(248, 113, 113, 0.45);
+
+        &:hover:not(:disabled) {
+            background: rgba(248, 113, 113, 0.2);
+            border-color: rgba(248, 113, 113, 0.6);
+        }
+    }
+
+    & .quick_form {
+        @apply flex flex-wrap items-center gap-2 px-3 py-2;
+        background: rgba(3, 6, 14, 0.58);
+        border-left: 1px solid rgba(255, 255, 255, 0.08);
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+
+        & > input {
+            @apply min-w-0 flex-1 rounded-lg px-3 py-1.5 font-mono text-xs text-neutral-100 outline-none;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            flex-basis: 10rem;
+
+            &:focus {
+                border-color: rgb(var(--ac-a) / 0.7);
+            }
+        }
+
+        & > button {
+            @apply flex-none rounded-lg px-3 py-1.5 text-xs font-semibold text-white;
+            background: linear-gradient(135deg, rgb(var(--ac-a)), rgb(var(--ac-b)));
+
+            &:disabled {
+                @apply opacity-50 cursor-not-allowed;
+            }
+        }
+    }
+
+    & .history_list {
+        @apply absolute bottom-full left-0 right-0 z-20 mb-1 max-h-60 overflow-y-auto rounded-xl py-1;
+        background: #0b0f1c;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.45);
+
+        & button {
+            @apply block w-full truncate px-3 py-1.5 text-left font-mono text-xs text-neutral-200;
+
+            &:hover {
+                background: rgb(var(--ac-a) / 0.25);
+                @apply text-white;
+            }
+        }
+    }
+
     & .command_icon {
         @apply flex items-center top-0 left-0 absolute z-10 select-none h-full px-3 transition-colors duration-100;
     }
 
     & .command_input {
-        @apply relative px-2 text-gray-100 pl-10 pr-4 py-3 w-full font-mono text-sm rounded-b-2xl;
+        @apply relative px-2 text-gray-100 pl-10 pr-12 py-3 w-full font-mono text-sm rounded-b-2xl;
         background: rgba(3, 6, 14, 0.5);
         border-left: 1px solid rgba(255, 255, 255, 0.08) !important;
         border-right: 1px solid rgba(255, 255, 255, 0.08) !important;

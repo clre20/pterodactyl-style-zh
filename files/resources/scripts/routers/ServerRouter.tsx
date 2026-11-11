@@ -31,6 +31,7 @@ export default () => {
 
     const id = ServerContext.useStoreState((state) => state.server.data?.id);
     const uuid = ServerContext.useStoreState((state) => state.server.data?.uuid);
+    const server = ServerContext.useStoreState((state) => state.server.data);
     const inConflictState = ServerContext.useStoreState((state) => state.server.inConflictState);
     const serverId = ServerContext.useStoreState((state) => state.server.data?.internalId);
     const getServer = ServerContext.useStoreActions((actions) => actions.server.getServer);
@@ -78,7 +79,7 @@ export default () => {
                         <SubNavigation>
                             <div>
                                 {routes.server
-                                    .filter((route) => !!route.name)
+                                    .filter((route) => !!route.name && (!route.only || (server && route.only(server))))
                                     .map((route) =>
                                         route.permission ? (
                                             <Can key={route.path} action={route.permission} matchAny>

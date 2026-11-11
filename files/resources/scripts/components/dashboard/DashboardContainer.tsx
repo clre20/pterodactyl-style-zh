@@ -14,11 +14,31 @@ import { PaginatedResult } from '@/api/http';
 import Pagination from '@/components/elements/Pagination';
 import { useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheckCircle, faStopCircle, faServer } from '@fortawesome/free-solid-svg-icons';
+import {
+    faCheckCircle,
+    faLayerGroup,
+    faList,
+    faSearch,
+    faServer,
+    faStopCircle,
+    faThLarge,
+} from '@fortawesome/free-solid-svg-icons';
+import classNames from 'classnames';
+import { ip } from '@/lib/formatters';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { ServerPowerState } from '@/api/server/getServerResourceUsage';
 
-const StatCard = ({ label, value, icon, color }: { label: string; value: React.ReactNode; icon: IconDefinition; color: string }) => (
+const StatCard = ({
+    label,
+    value,
+    icon,
+    color,
+}: {
+    label: string;
+    value: React.ReactNode;
+    icon: IconDefinition;
+    color: string;
+}) => (
     <div className={'glass relative overflow-hidden rounded-2xl px-5 py-4'}>
         <FontAwesomeIcon icon={icon} className={'watermark'} style={{ color }} />
         <p className={'text-sm text-neutral-400'}>{label}</p>
@@ -45,6 +65,18 @@ export default () => {
     }, []);
     const rootAdmin = useStoreState((state) => state.user.data!.rootAdmin);
     const [showOnlyAdmin, setShowOnlyAdmin] = usePersistedState(`${uuid}:show_all_servers`, false);
+    // How the list is shown is a personal preference, remembered per account in this browser.
+    const [view, setView] = usePersistedState<'list' | 'grid'>(`${uuid}:server_view`, 'list');
+    const [grouped, setGrouped] = usePersistedState<boolean>(`${uuid}:server_grouped`, false);
+    const [pinned, setPinned] = usePersistedState<string[]>(`${uuid}:server_pinned`, []);
+    const [filter, setFilter] = useState('');
+    const togglePin = useCallback(
+        (id: string) =>
+            setPinned((current) =>
+                (current || []).includes(id) ? (current || []).filter((v) => v !== id) : [...(current || []), id]
+            ),
+        []
+    );
 
     const { data: servers, error } = useSWR<PaginatedResult<Server>>(
         ['/api/client/servers', showOnlyAdmin && rootAdmin, page],
@@ -82,11 +114,13 @@ export default () => {
     return (
         <PageContentBlock title={__('Dashboard')} showFlashKey={'dashboard'}>
             <div className={'flex flex-wrap items-end justify-between gap-4 mb-6'}>
-                <h1 className={'text-3xl font-bold text-neutral-50'}>{__('Welcome back, {{name}}', { name: username })}</h1>
+                <h1 className={'text-3xl font-bold text-neutral-50'}>
+                    {__('Welcome back, {{name}}', { name: username })}
+                </h1>
                 {rootAdmin && (
                     <label className={'glass flex items-center gap-3 rounded-xl px-4 h-11 cursor-pointer'}>
                         <span className={'text-sm text-neutral-300'}>
-                            {showOnlyAdmin ? __('Showing others\' servers') : __('Showing your servers')}
+                            {showOnlyAdmin ? __("Showing others' servers") : __('Showing your servers')}
                         </span>
                         <Switch
                             name={'show_all_servers'}
@@ -98,32 +132,170 @@ export default () => {
             </div>
             {servers && servers.items.length > 0 && (
                 <div className={'grid grid-cols-3 gap-3 sm:gap-4 mb-6 stagger'}>
-                    <StatCard
-                        label={__('Running')}
-                        value={runningCount}
-                        icon={faCheckCircle}
-                        color={'#6ee7b7'}
-                    />
-                    <StatCard
-                        label={__('Stopped')}
-                        value={stoppedCount}
-                        icon={faStopCircle}
-                        color={'#fca5a5'}
-                    />
+                    <StatCard label={__('Running')} value={runningCount} icon={faCheckCircle} color={'#6ee7b7'} />
+                    <StatCard label={__('Stopped')} value={stoppedCount} icon={faStopCircle} color={'#fca5a5'} />
                     <StatCard label={__('Total')} value={servers.items.length} icon={faServer} color={'#c7d2fe'} />
+                </div>
+            )}
+            {servers && servers.items.length > 1 && (
+                <div className={'mb-4 flex flex-wrap items-center gap-2'}>
+                    <label
+                        className={
+                            'glass flex h-10 min-w-[12rem] flex-1 items-center gap-2 rounded-xl px-3 sm:max-w-xs'
+                        }
+                    >
+                        <FontAwesomeIcon icon={faSearch} className={'text-neutral-400'} />
+                        <input
+                            type={'search'}
+                            value={filter}
+                            onChange={(e) => setFilter(e.currentTarget.value)}
+                            placeholder={__('Filter servers')}
+                            aria-label={__('Filter servers')}
+                            className={
+                                'h-full w-full bg-transparent text-sm text-neutral-100 placeholder-neutral-500 outline-none'
+                            }
+                        />
+                    </label>
+                    <div className={'ml-auto flex items-center gap-2'}>
+                        <button
+                            type={'button'}
+                            aria-pressed={!!grouped}
+                            onClick={() => setGrouped((v) => !v)}
+                            className={classNames(
+                                'glass flex h-10 items-center gap-2 rounded-xl px-3 text-sm transition-colors duration-150',
+                                grouped ? 'text-neutral-50 !bg-white/15' : 'text-neutral-400 hover:text-neutral-100'
+                            )}
+                        >
+                            <FontAwesomeIcon icon={faLayerGroup} />
+                            <span className={'hidden sm:inline'}>{__('Group by node')}</span>
+                        </button>
+                        <div
+                            className={'glass flex h-10 items-center rounded-xl p-1'}
+                            role={'group'}
+                            aria-label={__('Layout')}
+                        >
+                            {(
+                                [
+                                    ['list', faList, __('List')],
+                                    ['grid', faThLarge, __('Cards')],
+                                ] as const
+                            ).map(([value, icon, label]) => (
+                                <button
+                                    key={value}
+                                    type={'button'}
+                                    title={label}
+                                    aria-label={label}
+                                    aria-pressed={view === value}
+                                    onClick={() => setView(value)}
+                                    className={classNames(
+                                        'flex h-8 w-9 items-center justify-center rounded-lg transition-colors duration-150',
+                                        view === value
+                                            ? 'bg-white/15 text-neutral-50'
+                                            : 'text-neutral-400 hover:text-neutral-100'
+                                    )}
+                                >
+                                    <FontAwesomeIcon icon={icon} />
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             )}
             {!servers ? (
                 <SkeletonList rows={3} variant={'card'} />
             ) : (
                 <Pagination data={servers} onPageSelect={setPage}>
-                    {({ items }) =>
-                        items.length > 0 ? (
-                            <div className={'flex flex-col gap-3 stagger'}>
-                                {items.map((server) => (
-                                    <ServerRow key={server.uuid} server={server} onStatus={onStatus} />
+                    {({ items }) => {
+                        const needle = filter.trim().toLowerCase();
+                        const isPinned = (server: Server) => (pinned || []).includes(server.uuid);
+                        const visible = items
+                            .filter(
+                                (server) =>
+                                    !needle ||
+                                    [
+                                        server.name,
+                                        server.description,
+                                        server.node,
+                                        ...server.allocations.map((a) => `${a.alias || ip(a.ip)}:${a.port}`),
+                                    ]
+                                        .join(' ')
+                                        .toLowerCase()
+                                        .includes(needle)
+                            )
+                            // Pinned servers first; otherwise keep the order the panel returned.
+                            .map((server, index) => ({ server, index }))
+                            .sort(
+                                (a, b) => Number(isPinned(b.server)) - Number(isPinned(a.server)) || a.index - b.index
+                            )
+                            .map(({ server }) => server);
+
+                        const groups: [string | null, Server[]][] = grouped
+                            ? Array.from(
+                                  visible.reduce(
+                                      (map, server) => map.set(server.node, [...(map.get(server.node) || []), server]),
+                                      new Map<string, Server[]>()
+                                  )
+                              )
+                            : [[null, visible]];
+
+                        const list = (rows: Server[]) => (
+                            <div
+                                className={classNames(
+                                    'stagger',
+                                    view === 'grid'
+                                        ? 'grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3'
+                                        : 'flex flex-col gap-3'
+                                )}
+                            >
+                                {rows.map((server) => (
+                                    <ServerRow
+                                        key={server.uuid}
+                                        server={server}
+                                        onStatus={onStatus}
+                                        view={view === 'grid' ? 'grid' : 'list'}
+                                        pinned={isPinned(server)}
+                                        onTogglePin={togglePin}
+                                    />
                                 ))}
                             </div>
+                        );
+
+                        return items.length > 0 ? (
+                            visible.length === 0 ? (
+                                <EmptyState
+                                    icon={faSearch}
+                                    title={__('No matching servers')}
+                                    message={__('No server matches "{{filter}}".', { filter: filter.trim() })}
+                                />
+                            ) : (
+                                <div className={'flex flex-col gap-6'}>
+                                    {groups.map(([node, rows]) => (
+                                        <section key={node || 'all'}>
+                                            {node && (
+                                                <h2
+                                                    className={
+                                                        'mb-2 flex items-center gap-2 text-sm font-semibold text-neutral-300'
+                                                    }
+                                                >
+                                                    <FontAwesomeIcon
+                                                        icon={faLayerGroup}
+                                                        className={'text-neutral-500'}
+                                                    />
+                                                    {node}
+                                                    <span
+                                                        className={
+                                                            'rounded-full bg-white/10 px-2 text-xs tabular-nums text-neutral-400'
+                                                        }
+                                                    >
+                                                        {rows.length}
+                                                    </span>
+                                                </h2>
+                                            )}
+                                            {list(rows)}
+                                        </section>
+                                    ))}
+                                </div>
+                            )
                         ) : (
                             <EmptyState
                                 icon={faServer}
@@ -148,8 +320,8 @@ export default () => {
                                     </a>
                                 )}
                             </EmptyState>
-                        )
-                    }
+                        );
+                    }}
                 </Pagination>
             )}
         </PageContentBlock>

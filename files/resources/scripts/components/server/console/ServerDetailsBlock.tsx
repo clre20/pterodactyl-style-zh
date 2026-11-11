@@ -5,6 +5,7 @@ import {
     faHdd,
     faMemory,
     faMicrochip,
+    faUserFriends,
     faWifi,
 } from '@fortawesome/free-solid-svg-icons';
 import { bytesToString, ip, mbToBytes } from '@/lib/formatters';
@@ -16,6 +17,9 @@ import CopyOnClick from '@/components/elements/CopyOnClick';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import useWebsocketEvent from '@/plugins/useWebsocketEvent';
 import classNames from 'classnames';
+import { Link } from 'react-router-dom';
+import { isMinecraftServer } from '@/lib/minecraft';
+import getMinecraftStatus from '@/api/server/getMinecraftStatus';
 import { capitalize } from '@/lib/strings';
 
 import { __ } from '@/i18n';
@@ -69,6 +73,27 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
             uptime: stats.uptime || 0,
         });
     });
+
+    // Minecraft servers also show how many players are online, asked from the game port.
+    const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
+    const serverPath = ServerContext.useStoreState((state) => `/server/${state.server.data!.id}`);
+    const minecraft = ServerContext.useStoreState((state) => isMinecraftServer(state.server.data!));
+    const [players, setPlayers] = useState<{ online: number; max: number } | null>(null);
+
+    useEffect(() => {
+        if (!minecraft || status !== 'running') {
+            setPlayers(null);
+            return;
+        }
+        const load = () =>
+            getMinecraftStatus(uuid)
+                .then((mc) => setPlayers(mc.reachable ? mc.players : null))
+                .catch(() => setPlayers(null));
+        load();
+        const timer = setInterval(load, 20000);
+
+        return () => clearInterval(timer);
+    }, [uuid, minecraft, status]);
 
     const offline = status === 'offline' || status === null;
     const memLimitBytes = limits.memory ? mbToBytes(limits.memory) : 0;
@@ -132,6 +157,15 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
                         )}
                     </p>
                 </div>
+                {players && (
+                    <Link to={`${serverPath}/minecraft`} className={'relative block no-underline'}>
+                        <p className={'text-xs text-neutral-400'}>{__('Players online')}</p>
+                        <p className={'text-sm font-semibold tabular-nums text-neutral-100'}>
+                            <FontAwesomeIcon icon={faUserFriends} className={'mr-1.5 text-green-300'} />
+                            {players.online} / {players.max}
+                        </p>
+                    </Link>
+                )}
                 <div className={'relative grid grid-cols-2 gap-2'}>
                     <div className={'min-w-0'}>
                         <p className={'text-xs text-neutral-400'}>

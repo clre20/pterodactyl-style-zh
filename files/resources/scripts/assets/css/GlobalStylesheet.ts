@@ -257,6 +257,13 @@ export default createGlobalStyle`
         color: transparent;
     }
 
+    /* The pin star only appears on hover; touch screens have no hover, so keep it visible there. */
+    @media (hover: none) {
+        .pin-touch {
+            opacity: 0.7 !important;
+        }
+    }
+
     .hide-scrollbar {
         scrollbar-width: none;
         &::-webkit-scrollbar {
