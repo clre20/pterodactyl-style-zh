@@ -138,7 +138,7 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
                 <p>{__('Total {{value}}', { value: textLimits.disk || __('Unlimited') })}</p>
             </Gauge>
             <div className={'glass relative overflow-hidden rounded-2xl p-4 sm:p-5 flex flex-col justify-center gap-2 col-span-3 xl:col-span-1'}>
-                <FontAwesomeIcon icon={faWifi} className={'watermark'} style={{ color: '#fcd34d' }} />
+                <FontAwesomeIcon icon={faWifi} className={'watermark watermark-faint'} style={{ color: '#fcd34d' }} />
                 <CopyOnClick text={allocation}>
                     <div className={'relative cursor-pointer'}>
                         <p className={'text-xs text-neutral-400'}>{__('Address')}</p>

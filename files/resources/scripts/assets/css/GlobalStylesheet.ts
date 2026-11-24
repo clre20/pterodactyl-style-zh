@@ -165,6 +165,12 @@ export default createGlobalStyle`
         }
     }
 
+    /* Cards where the mark sits behind data (charts, figures): fainter so it never competes with them. */
+    .watermark.watermark-faint,
+    svg.svg-inline--fa.watermark.watermark-faint {
+        opacity: 0.045;
+    }
+
     .accent-gradient {
         background-image: linear-gradient(135deg, rgb(var(--ac-a)), rgb(var(--ac-b)));
     }

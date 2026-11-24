@@ -797,7 +797,8 @@ hr {
     font-weight: 600;
 }
 
-/* Boxes no longer create a containing block for fixed children (dropdowns, select2). */
+/* Let dropdown content hang outside boxes. Boxes still blur their backdrop, which makes each one its own
+   layer, so a box with an open dropdown is lifted above the boxes after it (see Layering below). */
 .box,
 .nav-tabs-custom {
     overflow: visible;
@@ -2022,4 +2023,26 @@ select optgroup {
 }
 .glass-bg-thumb button:hover {
     background: rgba(239, 68, 68, 0.85);
+}
+
+/* Layering --------------------------------------------------------------- */
+
+/* Every box is its own layer (backdrop-filter); lift the one with an open Bootstrap dropdown
+   so the menu is not covered and blurred by the boxes that follow it. */
+.box:has(.open),
+.nav-tabs-custom:has(.open),
+.panel:has(.open) {
+    position: relative;
+    z-index: 20;
+}
+
+/* Node usage cards: the summary text runs across the corner mark, so keep the mark faint and below it. */
+.node-usage-card .glass-watermark {
+    opacity: 0.045;
+}
+.node-usage-card:hover .glass-watermark {
+    opacity: 0.1;
+}
+.node-usage-card > :not(.glass-watermark) {
+    position: relative;
 }

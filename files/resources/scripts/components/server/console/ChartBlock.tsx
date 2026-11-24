@@ -14,7 +14,7 @@ interface ChartBlockProps {
 
 export default ({ title, legend, icon, color, children }: ChartBlockProps) => (
     <div className={classNames(styles.chart_container, 'glass group')}>
-        {icon && <FontAwesomeIcon icon={icon} className={'watermark'} style={{ color }} />}
+        {icon && <FontAwesomeIcon icon={icon} className={'watermark watermark-faint'} style={{ color }} />}
         <div className={'relative flex items-center justify-between px-5 pt-4 pb-2'}>
             <h3 className={'font-header font-bold text-neutral-100 transition-colors duration-100 group-hover:text-white'}>
                 {title}

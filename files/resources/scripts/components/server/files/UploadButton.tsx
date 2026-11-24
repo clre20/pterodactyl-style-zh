@@ -2,7 +2,7 @@ import axios, { AxiosProgressEvent } from 'axios';
 import getFileUploadUrl from '@/api/server/files/getFileUploadUrl';
 import tw from 'twin.macro';
 import { Button } from '@/components/elements/button/index';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ModalMask } from '@/components/elements/Modal';
 import Fade from '@/components/elements/Fade';
 import useEventListener from '@/plugins/useEventListener';
@@ -13,6 +13,8 @@ import { WithClassname } from '@/components/types';
 import Portal from '@/components/elements/Portal';
 import { CloudUploadIcon } from '@heroicons/react/outline';
 import { useSignal } from '@preact/signals-react';
+import { FileObject } from '@/api/server/files/loadDirectory';
+import UploadConflictDialog, { ConflictChoice, UploadConflict } from '@/components/server/files/UploadConflictDialog';
 
 import { __ } from '@/i18n';
 function isFileOrDirectory(event: DragEvent): boolean {
@@ -23,13 +25,36 @@ function isFileOrDirectory(event: DragEvent): boolean {
     return event.dataTransfer.types.some((value) => value.toLowerCase() === 'files');
 }
 
+/** Splits "server.properties" into "server" + ".properties", keeping ".tar.gz" style endings together. */
+function splitName(name: string): [string, string] {
+    const match = name.match(/^(.+?)((?:\.tar)?\.[^.]+)$/);
+
+    return match ? [match[1], match[2]] : [name, ''];
+}
+
+/** The first "name (n).ext" that is not in `taken`. */
+function availableName(name: string, taken: Set<string>): string {
+    const [base, extension] = splitName(name);
+    for (let i = 1; ; i++) {
+        const candidate = `${base} (${i})${extension}`;
+        if (!taken.has(candidate)) return candidate;
+    }
+}
+
+interface PendingUpload {
+    files: File[];
+    conflicts: UploadConflict[];
+    existing: FileObject[];
+}
+
 export default ({ className }: WithClassname) => {
     const fileUploadInput = useRef<HTMLInputElement>(null);
 
     const visible = useSignal(false);
+    const [pending, setPending] = useState<PendingUpload | null>(null);
     const timeouts = useSignal<NodeJS.Timeout[]>([]);
 
-    const { mutate } = useFileManagerSwr();
+    const { mutate, data: listed } = useFileManagerSwr();
     const { addError, clearAndAddHttpError } = useFlashKey('files');
 
     const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
@@ -62,13 +87,7 @@ export default ({ className }: WithClassname) => {
         setUploadProgress({ name, loaded: data.loaded });
     };
 
-    const onFileSubmission = (files: FileList) => {
-        clearAndAddHttpError();
-        const list = Array.from(files);
-        if (list.some((file) => !file.type && (!file.size || file.size === 4096))) {
-            return addError('Folder uploads are not supported.', 'Error');
-        }
-
+    const startUpload = (list: File[]) => {
         const uploads = list.map((file) => {
             const controller = new AbortController();
             pushFileUpload({
@@ -100,6 +119,58 @@ export default ({ className }: WithClassname) => {
                 clearAndAddHttpError(error);
             });
     };
+
+    const onFileSubmission = (files: FileList) => {
+        clearAndAddHttpError();
+        const list = Array.from(files);
+        if (list.some((file) => !file.type && (!file.size || file.size === 4096))) {
+            return addError('Folder uploads are not supported.', 'Error');
+        }
+
+        // Check against a fresh listing so a file created since the page loaded is not silently replaced.
+        mutate()
+            .catch(() => undefined)
+            .then((fresh) => {
+                const existing = fresh || listed || [];
+                const byName = new Map(existing.map((f) => [f.name, f]));
+                const conflicts = list
+                    .filter((file) => byName.has(file.name))
+                    .map((file) => ({ file, existing: byName.get(file.name)! }));
+
+                if (!conflicts.length) {
+                    startUpload(list);
+                } else {
+                    setPending({ files: list, conflicts, existing });
+                }
+            });
+    };
+
+    const onConflictChoice = (choice: ConflictChoice) => {
+        if (!pending) return;
+
+        const clashing = new Map(pending.conflicts.map((c) => [c.file.name, c.existing]));
+        const taken = new Set([...pending.existing.map((f) => f.name), ...pending.files.map((f) => f.name)]);
+        const files = pending.files.map((file) => {
+            const existing = clashing.get(file.name);
+            // A folder can never be replaced by a file, so those are renamed even when overwriting.
+            if (!existing || (choice === 'overwrite' && existing.isFile)) return file;
+
+            const name = availableName(file.name, taken);
+            taken.add(name);
+
+            return new File([file], name, { type: file.type, lastModified: file.lastModified });
+        });
+
+        setPending(null);
+        startUpload(files);
+    };
+
+    const exampleName = (() => {
+        if (!pending) return undefined;
+        const taken = new Set([...pending.existing.map((f) => f.name), ...pending.files.map((f) => f.name)]);
+
+        return availableName(pending.conflicts[0].file.name, taken);
+    })();
 
     return (
         <>
@@ -133,6 +204,14 @@ export default ({ className }: WithClassname) => {
                     </ModalMask>
                 </Fade>
             </Portal>
+            <UploadConflictDialog
+                open={!!pending}
+                conflicts={pending?.conflicts || []}
+                others={pending ? pending.files.length - pending.conflicts.length : 0}
+                example={exampleName}
+                onCancel={() => setPending(null)}
+                onChoose={onConflictChoice}
+            />
             <input
                 type={'file'}
                 ref={fileUploadInput}
@@ -141,9 +220,8 @@ export default ({ className }: WithClassname) => {
                     if (!e.currentTarget.files) return;
 
                     onFileSubmission(e.currentTarget.files);
-                    if (fileUploadInput.current) {
-                        fileUploadInput.current.files = null;
-                    }
+                    // Clear the picker so choosing the same file again (e.g. after cancelling) fires onChange.
+                    e.currentTarget.value = '';
                 }}
                 multiple
             />
