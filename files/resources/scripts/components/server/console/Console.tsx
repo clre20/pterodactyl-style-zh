@@ -159,10 +159,50 @@ export default () => {
         link.remove();
         setTimeout(() => URL.revokeObjectURL(link.href), 1000);
     };
-    // SearchBarAddon has hardcoded z-index: 999 :(
+    // SearchBarAddon ships a grey VS Code style bar with z-index 999 in the top-right corner, right where
+    // the console tools sit. Restyle it to match the panel and drop it just below the tools (on phones the
+    // tools already have their own row above the log, so it stays at the top and spans the width).
     const zIndex = `
     .xterm-search-bar__addon {
-        z-index: 10;
+        z-index: 20;
+        top: 4px;
+        left: 0;
+        right: 0;
+        align-items: center;
+        gap: 2px;
+        padding: 6px 8px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background-color: rgba(11, 15, 28, 0.96);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    }
+    @media (min-width: 640px) {
+        .xterm-search-bar__addon {
+            top: 34px;
+            left: auto;
+            right: 0;
+        }
+    }
+    .xterm-search-bar__addon .search-bar__input {
+        flex: 1;
+        min-width: 0;
+        height: 28px;
+        padding: 0 8px;
+        border-radius: 8px;
+        color: #e2e8f0;
+        background-color: rgba(255, 255, 255, 0.06);
+    }
+    .xterm-search-bar__addon .search-bar__btn {
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        background-color: transparent;
+    }
+    .xterm-search-bar__addon .search-bar__btn:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    .xterm-search-bar__addon .search-bar__btn.prev {
+        margin-left: 6px;
     }`;
 
     const handleConsoleOutput = (line: string, prelude = false) =>

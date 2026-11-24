@@ -124,7 +124,7 @@ export default ({ className }: WithClassname) => {
         clearAndAddHttpError();
         const list = Array.from(files);
         if (list.some((file) => !file.type && (!file.size || file.size === 4096))) {
-            return addError('Folder uploads are not supported.', 'Error');
+            return addError(__('Folder uploads are not supported.'), __('Error'));
         }
 
         // Check against a fresh listing so a file created since the page loaded is not silently replaced.

@@ -9,12 +9,18 @@ interface Props {
     renderToggle: (onClick: (e: React.MouseEvent<any, MouseEvent>) => void) => React.ReactChild;
 }
 
+// Rows of the menu, styled for the dark glass menu (the stock menu was white).
+export const menuRowHover = (danger?: boolean) =>
+    danger
+        ? 'color: #fca5a5; background: rgba(239, 68, 68, 0.16);'
+        : 'color: #fff; background: rgba(255, 255, 255, 0.08);';
+
 export const DropdownButtonRow = styled.button<{ danger?: boolean }>`
-    ${tw`p-2 flex items-center rounded w-full text-neutral-500`};
+    ${tw`p-2 flex items-center rounded-lg w-full text-neutral-200`};
     transition: 150ms all ease;
 
     &:hover {
-        ${(props) => (props.danger ? tw`text-red-700 bg-red-100` : tw`text-neutral-700 bg-neutral-100`)};
+        ${(props) => menuRowHover(props.danger)};
     }
 `;
 
@@ -129,7 +135,8 @@ class DropdownMenu extends React.PureComponent<Props, State> {
                             }}
                             onContextMenu={(e) => e.stopPropagation()}
                             style={{ width: '12rem', zIndex: 70 }}
-                            css={tw`fixed bg-white p-2 rounded border border-neutral-700 shadow-lg text-neutral-500`}
+                            className={'glass-strong'}
+                            css={tw`fixed p-1.5 rounded-xl text-neutral-200`}
                         >
                             {this.props.children}
                         </div>

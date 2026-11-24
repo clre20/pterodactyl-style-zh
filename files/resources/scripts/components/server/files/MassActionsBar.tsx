@@ -34,7 +34,7 @@ const MassActionsBar = () => {
     const onClickCompress = () => {
         setLoading(true);
         clearFlashes('files');
-        setLoadingMessage('Archiving files...');
+        setLoadingMessage(__('Archiving files...'));
 
         compressFiles(uuid, directory, selectedFiles)
             .then(() => mutate())
@@ -47,7 +47,7 @@ const MassActionsBar = () => {
         setLoading(true);
         setShowConfirm(false);
         clearFlashes('files');
-        setLoadingMessage('Deleting files...');
+        setLoadingMessage(__('Deleting files...'));
 
         deleteFiles(uuid, directory, selectedFiles)
             .then(() => {
@@ -76,12 +76,14 @@ const MassActionsBar = () => {
                 >
                     <p className={'mb-2'}>
                         {__('Are you sure you want to delete')}{' '}
-                        <span className={'font-semibold text-gray-50'}>{selectedFiles.length} files</span>{__('? This is a permanent action and the files cannot be recovered.')}
+                        <span className={'font-semibold text-gray-50'}>
+                            {__('{{count}} files', { count: selectedFiles.length })}
+                        </span>{__('? This is a permanent action and the files cannot be recovered.')}
                     </p>
                     {selectedFiles.slice(0, 15).map((file) => (
                         <li key={file}>{file}</li>
                     ))}
-                    {selectedFiles.length > 15 && <li>and {selectedFiles.length - 15} others</li>}
+                    {selectedFiles.length > 15 && <li>{__('and {{count}} others', { count: selectedFiles.length - 15 })}</li>}
                 </Dialog.Confirm>
                 {showMove && (
                     <RenameFileModal

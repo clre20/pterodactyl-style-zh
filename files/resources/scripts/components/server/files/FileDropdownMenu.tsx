@@ -24,7 +24,7 @@ import useFlash from '@/plugins/useFlash';
 import tw from 'twin.macro';
 import { FileObject } from '@/api/server/files/loadDirectory';
 import useFileManagerSwr from '@/plugins/useFileManagerSwr';
-import DropdownMenu from '@/components/elements/DropdownMenu';
+import DropdownMenu, { menuRowHover } from '@/components/elements/DropdownMenu';
 import styled from 'styled-components/macro';
 import useEventListener from '@/plugins/useEventListener';
 import compressFiles from '@/api/server/files/compressFiles';
@@ -37,9 +37,11 @@ import { __ } from '@/i18n';
 type ModalType = 'rename' | 'move' | 'chmod';
 
 const StyledRow = styled.div<{ $danger?: boolean }>`
-    ${tw`p-2 flex items-center rounded`};
-    ${(props) =>
-        props.$danger ? tw`hover:bg-red-100 hover:text-red-700` : tw`hover:bg-neutral-100 hover:text-neutral-700`};
+    ${tw`p-2 flex items-center rounded-lg cursor-pointer transition-colors duration-150`};
+
+    &:hover {
+        ${(props) => menuRowHover(props.$danger)};
+    }
 `;
 
 interface RowProps extends React.HTMLAttributes<HTMLDivElement> {
