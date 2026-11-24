@@ -53,10 +53,6 @@
             box-shadow: 0 24px 64px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .08);
         }
         .error-art { width: 230px; flex: none; }
-        .error-art .turn { transform-origin: 100px 100px; animation: turn 6s linear infinite; }
-        .error-art .spark { animation: spark 1.8s ease-in-out infinite; }
-        @keyframes turn { to { transform: rotate(360deg); } }
-        @keyframes spark { 50% { opacity: .25; } }
         .text { min-width: 0; text-align: left; }
         .code {
             margin: 0; font-size: 84px; font-weight: 800; letter-spacing: -2px; line-height: 1; font-variant-numeric: tabular-nums;
@@ -71,7 +67,6 @@
         .tone-accent { --soft: rgb(var(--ac-a) / .16); --ink: rgb(var(--primary-300)); }
         .tone-amber { --soft: rgba(245, 158, 11, .14); --ink: #fcd34d; }
         .tone-red { --soft: rgba(239, 68, 68, .15); --ink: #fca5a5; }
-        @media (prefers-reduced-motion: reduce) { .error-art .turn, .error-art .spark { animation: none; } }
         @media (max-width: 640px) {
             .card { flex-direction: column; gap: 18px; padding: 32px 22px 28px; border-radius: 22px; }
             .error-art { width: 170px; }

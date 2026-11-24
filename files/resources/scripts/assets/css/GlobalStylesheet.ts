@@ -253,30 +253,14 @@ export default createGlobalStyle`
         background: linear-gradient(90deg, transparent, #fcd34d, transparent);
         background-size: 50% 100%;
         background-repeat: no-repeat;
-        animation: state-sweep 1.6s ease-in-out infinite;
+        /* Glides to one end, then back to the other (alternate), instead of restarting from the left. */
+        animation: state-sweep 1.4s ease-in-out infinite alternate;
     }
     @keyframes state-sweep {
-        from { background-position: -50% 0; }
-        to { background-position: 150% 0; }
+        from { background-position: 0 0; }
+        to { background-position: 100% 0; }
     }
 
-    /* Line drawings on full-page messages */
-    .error-art .turn {
-        transform-origin: 100px 100px;
-    }
-    .error-art.busy .turn {
-        animation: error-art-turn 6s linear infinite;
-    }
-    .error-art .spark {
-        animation: error-art-spark 1.8s ease-in-out infinite;
-    }
-    @keyframes error-art-turn {
-        to { transform: rotate(360deg); }
-    }
-    @keyframes error-art-spark {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.25; }
-    }
     .accent-text {
         background-image: linear-gradient(135deg, rgb(var(--primary-200)), rgb(var(--ac-b-l)));
         -webkit-background-clip: text;
@@ -328,7 +312,6 @@ export default createGlobalStyle`
     @media (prefers-reduced-motion: reduce) {
         .enter, .stagger > *,
         .skeleton,
-        .error-art.busy .turn, .error-art .spark,
         .state-dot.live::after, .state-busy::after {
             animation: none;
         }

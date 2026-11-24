@@ -1,32 +1,37 @@
-{{-- Line drawings for the error pages. Same paths as resources/scripts/components/elements/ErrorArt.tsx. --}}
-<svg class="error-art" aria-hidden="true" viewBox="0 0 200 200" fill="none" stroke="var(--ink)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+{{-- Animated line drawings for the error pages. Generated with resources/scripts/components/elements/ErrorArt.tsx. --}}
+@php
+    $glassArt = in_array($art ?? '', ['sign-in', 'forbidden', 'unplugged', 'expired', 'rate-limit', 'server-error', 'maintenance'], true) ? $art : 'server-error';
+@endphp
+<svg class="error-art ea-{{ $glassArt }}" aria-hidden="true" viewBox="0 0 200 200" fill="none" stroke="var(--ink)" color="var(--ink)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="100" cy="104" r="68" fill="var(--soft)" stroke="none"/>
-    @switch($art ?? 'file')
-        @case('plug')
-            <path d="M200 44h-84a16 16 0 0 0-16 16v14"/>
-            <rect x="84" y="74" width="32" height="24" rx="6"/>
-            <path d="M92 98v12M108 98v12"/>
-            <rect x="82" y="128" width="36" height="26" rx="7"/>
-            <path d="M92 128v-7M108 128v-7"/>
-            <path d="M100 154v14a16 16 0 0 1-16 16H52a16 16 0 0 0-16 16"/>
-            <path class="spark" d="M70 106l-10-5M68 116H56M130 106l10-5M132 116h12"/>
-            @break
-        @case('file')
-            <path d="M64 30h52l32 32v100a10 10 0 0 1-10 10H64a10 10 0 0 1-10-10V40a10 10 0 0 1 10-10z"/>
-            <path d="M116 30v22a10 10 0 0 0 10 10h22"/>
-            <path d="M76 96l12 12M88 96l-12 12M112 96l12 12M124 96l-12 12"/>
-            <path d="M82 142q18-16 36 0"/>
-            @break
-        @case('lock')
-            <rect x="58" y="92" width="84" height="70" rx="12"/>
-            <path d="M76 92V72a24 24 0 0 1 48 0v20"/>
-            <circle cx="100" cy="120" r="7"/>
-            <path d="M100 127v14"/>
-            @break
-        @case('gear')
-            <g class="turn"><circle cx="100" cy="100" r="16"/>
-            <circle cx="100" cy="100" r="36"/>
-            <path d="M100 52v12M100 136v12M52 100h12M136 100h12M66 66l8.5 8.5M125.500 125.500l8.500 8.500M66 134l8.500-8.500M125.500 74.500l8.500-8.500"/></g>
-            @break
+    @switch($glassArt)
+    @case('sign-in')
+        <style>@keyframes ea-sign-in-spin{to{transform:rotate(360deg)}}@keyframes ea-sign-in-blink{0%,100%{opacity:1}50%{opacity:0.2}}@keyframes ea-sign-in-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}@media (prefers-reduced-motion:reduce){.ea-sign-in *{animation:none!important}}.ea-sign-in .slide{animation:ea-sign-in-slide 3.2s ease-in-out infinite}.ea-sign-in .turn{transform-origin:132px 100px;animation:ea-sign-in-turn 3.2s ease-in-out infinite}.ea-sign-in .click{opacity:0;animation:ea-sign-in-click 3.2s steps(1,end) infinite}@keyframes ea-sign-in-slide{0%{transform:translateX(-24px);opacity:0}8%{opacity:1}28%,80%{transform:translateX(0)}92%{transform:translateX(-24px);opacity:1}100%{transform:translateX(-24px);opacity:0}}@keyframes ea-sign-in-turn{0%,32%{transform:scaleY(1)}40%{transform:scaleY(0.15)}48%,64%{transform:scaleY(-1)}72%{transform:scaleY(0.15)}80%,100%{transform:scaleY(1)}}@keyframes ea-sign-in-click{0%,44%{opacity:0}46%,58%{opacity:1}52%{opacity:0.25}62%,100%{opacity:0}}</style>
+        <g class="ea-sign-in"><defs><clipPath id="clip-401"><rect x="0" y="0" width="126" height="200"/></clipPath></defs><rect x="104" y="56" width="56" height="96" rx="14" fill="#22141b"/><circle cx="132" cy="96" r="8"/><path d="M128 102l-3 16h14l-3-16"/><g class="turn"><g clip-path="url(#clip-401)"><g class="slide" stroke="#fcd34d"><circle cx="52" cy="100" r="13"/><circle cx="52" cy="100" r="4"/><path d="M65 100h67M120 100v9M128 100v7"/></g></g></g><path class="click" d="M164 80l6-5M166 100h8M164 120l6 5" stroke="#34d399"/></g>
+        @break
+    @case('forbidden')
+        <style>@keyframes ea-forbidden-spin{to{transform:rotate(360deg)}}@keyframes ea-forbidden-blink{0%,100%{opacity:1}50%{opacity:0.2}}@keyframes ea-forbidden-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}@media (prefers-reduced-motion:reduce){.ea-forbidden *{animation:none!important}}.ea-forbidden .glint{animation:ea-forbidden-glint 2.6s ease-in-out infinite}.ea-forbidden .x{animation:ea-forbidden-xdraw 2.6s ease-out infinite}.ea-forbidden .x2{animation-name:ea-forbidden-xdraw2}@keyframes ea-forbidden-glint{0%,40%{transform:translateX(-50px)}80%,100%{transform:translateX(110px)}}@keyframes ea-forbidden-xdraw{0%{stroke-dashoffset:46}15%,100%{stroke-dashoffset:0}}@keyframes ea-forbidden-xdraw2{0%,15%{stroke-dashoffset:46}30%,100%{stroke-dashoffset:0}}</style>
+        <g class="ea-forbidden"><defs><clipPath id="clip-403"><path d="M100 46l46 16v36c0 30-20 50-46 62-26-12-46-32-46-62V62z"/></clipPath></defs><g clip-path="url(#clip-403)"><path class="glint" d="M40 160l40-120" stroke="#ffffff" stroke-width="12" stroke-opacity="0.25"/></g><path d="M100 46l46 16v36c0 30-20 50-46 62-26-12-46-32-46-62V62z" stroke="#7dd3fc"/><path class="x x1" d="M84 88l32 32" stroke="#f87171" stroke-width="6" stroke-dasharray="46 46"/><path class="x x2" d="M116 88l-32 32" stroke="#f87171" stroke-width="6" stroke-dasharray="46 46"/></g>
+        @break
+    @case('unplugged')
+        <style>@keyframes ea-unplugged-spin{to{transform:rotate(360deg)}}@keyframes ea-unplugged-blink{0%,100%{opacity:1}50%{opacity:0.2}}@keyframes ea-unplugged-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}@media (prefers-reduced-motion:reduce){.ea-unplugged *{animation:none!important}}.ea-unplugged .up{animation:ea-unplugged-reach-down 2s ease-in-out infinite}.ea-unplugged .down{animation:ea-unplugged-reach-up 2s ease-in-out infinite}.ea-unplugged .spark{animation:ea-unplugged-blink 2s ease-in-out infinite}@keyframes ea-unplugged-reach-down{0%,100%{transform:none}50%{transform:translateY(5px)}}@keyframes ea-unplugged-reach-up{0%,100%{transform:none}50%{transform:translateY(-5px)}}</style>
+        <g class="ea-unplugged"><g class="up" stroke="#7dd3fc"><path d="M168 44h-52a16 16 0 0 0-16 16v14"/><rect x="84" y="74" width="32" height="24" rx="6"/><path d="M92 98v12M108 98v12"/></g><g class="down" stroke="#c4b5fd"><rect x="82" y="128" width="36" height="26" rx="7"/><path d="M92 128v-7M108 128v-7"/><path d="M100 154v8a14 14 0 0 1-14 14H40"/></g><path class="spark" d="M70 106l-10-5M68 116H56M130 106l10-5M132 116h12" stroke="#fde047"/></g>
+        @break
+    @case('expired')
+        <style>@keyframes ea-expired-spin{to{transform:rotate(360deg)}}@keyframes ea-expired-blink{0%,100%{opacity:1}50%{opacity:0.2}}@keyframes ea-expired-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}@media (prefers-reduced-motion:reduce){.ea-expired *{animation:none!important}}.ea-expired .hand{transform-origin:100px 112px;animation:ea-expired-sweep 3.2s linear infinite}.ea-expired .left{animation:ea-expired-runout 3.2s linear infinite}.ea-expired .watch{transform-origin:100px 112px;animation:ea-expired-ring 3.2s ease-in-out infinite}.ea-expired .ring-l,.ea-expired .ring-r{opacity:0;animation:ea-expired-rings 3.2s steps(1,end) infinite}@keyframes ea-expired-sweep{0%{transform:rotate(0)}65%,100%{transform:rotate(360deg)}}@keyframes ea-expired-runout{0%{stroke-dashoffset:0;stroke:#34d399}32%{stroke:#fde047}65%,100%{stroke-dashoffset:201;stroke:#f87171}}@keyframes ea-expired-ring{0%,66%,100%{transform:none}70%{transform:rotate(-7deg)}74%{transform:rotate(7deg)}78%{transform:rotate(-6deg)}82%{transform:rotate(6deg)}86%{transform:rotate(-3deg)}90%{transform:none}}@keyframes ea-expired-rings{0%,66%{opacity:0}68%,72%,80%{opacity:1}70%,76%{opacity:0.2}90%,100%{opacity:0}}</style>
+        <g class="ea-expired"><g class="watch"><circle cx="100" cy="112" r="44"/><path d="M92 56h16M100 56v12M136 76l8-8" stroke="#cbd5e1"/><circle class="left" cx="100" cy="112" r="32" stroke-width="7" stroke-opacity="0.7" transform="rotate(-90 100 112)" stroke-dasharray="201 201"/><path class="hand" d="M100 112V86" stroke="#fdba74"/><circle cx="100" cy="112" r="4" stroke="#fdba74" fill="#fdba74"/></g><path class="ring-l" d="M50 70l-8-6M46 86h-10" stroke="#fde047"/><path class="ring-r" d="M150 92l8-4M152 106h10" stroke="#fde047"/></g>
+        @break
+    @case('rate-limit')
+        <style>@keyframes ea-rate-limit-spin{to{transform:rotate(360deg)}}@keyframes ea-rate-limit-blink{0%,100%{opacity:1}50%{opacity:0.2}}@keyframes ea-rate-limit-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}@media (prefers-reduced-motion:reduce){.ea-rate-limit *{animation:none!important}}.ea-rate-limit .needle{transform-origin:100px 118px;animation:ea-rate-limit-rev 2.4s ease-in-out infinite}.ea-rate-limit .hot{opacity:0;animation:ea-rate-limit-hot 2.4s steps(1,end) infinite}@keyframes ea-rate-limit-rev{0%{transform:rotate(-80deg)}45%{transform:rotate(68deg)}52%{transform:rotate(60deg)}58%{transform:rotate(70deg)}64%{transform:rotate(62deg)}70%{transform:rotate(69deg)}100%{transform:rotate(-80deg)}}@keyframes ea-rate-limit-hot{0%,44%{opacity:0}46%,52%,60%,68%{opacity:1}49%,56%,64%{opacity:0.2}72%,100%{opacity:0}}</style>
+        <g class="ea-rate-limit"><path d="M46.0 116.1A54 54 0 0 1 52.3 92.6" stroke="#86efac" stroke-width="4"/><path d="M54.2 89.4A54 54 0 0 1 71.4 72.2" stroke="#bef264" stroke-width="5"/><path d="M74.6 70.3A54 54 0 0 1 98.1 64.0" stroke="#fde047" stroke-width="6"/><path d="M101.9 64.0A54 54 0 0 1 125.4 70.3" stroke="#fdba74" stroke-width="8"/><path d="M128.6 72.2A54 54 0 0 1 145.8 89.4" stroke="#fb923c" stroke-width="10"/><path d="M147.7 92.6A54 54 0 0 1 154.0 116.1" stroke="#f87171" stroke-width="12"/><g class="needle"><path d="M100 118V80"/></g><circle cx="100" cy="118" r="7"/><path d="M66 150h68"/><path class="hot" d="M150 70l6-8M160 82l9-4" stroke="#f87171"/></g>
+        @break
+    @case('server-error')
+        <style>@keyframes ea-server-error-spin{to{transform:rotate(360deg)}}@keyframes ea-server-error-blink{0%,100%{opacity:1}50%{opacity:0.2}}@keyframes ea-server-error-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}@media (prefers-reduced-motion:reduce){.ea-server-error *{animation:none!important}}.ea-server-error .flame{transform-origin:100px 102px;animation:ea-server-error-flicker 1.2s ease-in-out infinite}.ea-server-error .core{transform-origin:100px 99px;animation:ea-server-error-flicker 0.6s ease-in-out infinite reverse}@keyframes ea-server-error-flicker{0%,100%{transform:scale(1,1) skewX(0)}25%{transform:scale(0.96,1.06) skewX(-3deg)}50%{transform:scale(1.03,0.95) skewX(2deg)}75%{transform:scale(0.98,1.04) skewX(3deg)}}</style>
+        <g class="ea-server-error"><rect x="56" y="104" width="88" height="24" rx="7"/><rect x="56" y="132" width="88" height="24" rx="7"/><circle cx="70" cy="116" r="3"/><circle cx="70" cy="144" r="3"/><path d="M90 116h40M90 144h40"/><g class="flame"><path d="M100 42c14 16 22 26 22 40a22 22 0 0 1-44 0c0-10 6-18 12-22 0 8 4 14 10 14 0-12-6-20 0-32z" stroke="#fb923c"/><path class="core" d="M100 74c6 8 9 12 9 16a9 9 0 0 1-18 0c0-4 4-8 9-16z" stroke="#fde047"/></g></g>
+        @break
+    @case('maintenance')
+        <style>@keyframes ea-maintenance-spin{to{transform:rotate(360deg)}}@keyframes ea-maintenance-blink{0%,100%{opacity:1}50%{opacity:0.2}}@keyframes ea-maintenance-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}@media (prefers-reduced-motion:reduce){.ea-maintenance *{animation:none!important}}.ea-maintenance .lamp-a{animation:ea-maintenance-blink 0.8s steps(2,jump-none) infinite}.ea-maintenance .lamp-b{animation:ea-maintenance-blink 0.8s steps(2,jump-none) infinite reverse}</style>
+        <g class="ea-maintenance"><rect x="36" y="50" width="128" height="100" rx="10"/><path d="M36 68h128"/><circle cx="48" cy="59" r="2.5"/><circle cx="58" cy="59" r="2.5"/><circle cx="68" cy="59" r="2.5"/><rect x="50" y="98" width="100" height="22" rx="4"/><path d="M62 120l14-22M86 120l14-22M110 120l14-22M134 120l12-20" stroke="#fef3c7"/><path d="M64 120v20M136 120v20M56 140h16M128 140h16"/><path d="M64 98v-6M136 98v-6"/><circle class="lamp-a" cx="64" cy="86" r="6" stroke="#fb923c" fill="#fb923c"/><circle class="lamp-b" cx="136" cy="86" r="6" stroke="#fb923c" fill="#fb923c"/></g>
+        @break
     @endswitch
 </svg>

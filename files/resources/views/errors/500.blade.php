@@ -1,7 +1,7 @@
 @extends('errors.layout')
 
 @section('code', '500')
-@section('art', 'file')
+@section('art', 'server-error')
 @section('tone', 'red')
 @section('title', __('Something went wrong'))
 @section('message', __('The panel ran into an unexpected error. Try again in a moment; if it keeps happening, contact the administrator.'))

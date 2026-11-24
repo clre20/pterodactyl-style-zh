@@ -1,7 +1,7 @@
 @extends('errors.layout')
 
 @section('code', '503')
-@section('art', 'gear')
+@section('art', 'maintenance')
 @section('tone', 'amber')
 @section('title', __('Under maintenance'))
 @section('message', __('The panel is being updated and will be back shortly.'))

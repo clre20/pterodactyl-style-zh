@@ -17,34 +17,28 @@ export default () => {
         <ScreenBlock
             title={status === 'installing' ? __('Running Installer') : __('Installation Failed')}
             image={ServerInstallSvg}
-            art={status === 'installing' ? 'gear' : 'file'}
-            tone={status === 'installing' ? 'amber' : 'red'}
-            busy={status === 'installing'}
+            art={status === 'installing' ? 'installing' : 'install-failed'}
             message={__('Your server should be ready soon, please try again in a few minutes.')}
         />
     ) : status === 'suspended' ? (
         <ScreenBlock
             title={__('Server Suspended')}
             image={ServerErrorSvg}
-            art={'lock'}
-            tone={'red'}
+            art={'suspended'}
             message={__('This server is suspended and cannot be accessed.')}
         />
     ) : isNodeUnderMaintenance ? (
         <ScreenBlock
             title={__('Node under Maintenance')}
             image={ServerErrorSvg}
-            art={'gear'}
-            tone={'amber'}
+            art={'node-maintenance'}
             message={__('The node of this server is currently under maintenance.')}
         />
     ) : (
         <ScreenBlock
             title={isTransferring ? __('Transferring') : __('Restoring from Backup')}
             image={ServerRestoreSvg}
-            art={'gear'}
-            tone={'accent'}
-            busy
+            art={isTransferring ? 'transferring' : 'restoring'}
             message={
                 isTransferring
                     ? __('Your server is being transferred to a new node, please check back later.')

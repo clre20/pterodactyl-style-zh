@@ -6,6 +6,19 @@ import { Server } from '@/api/server/getServer';
 import { ServerPowerState } from '@/api/server/getServerResourceUsage';
 import { readTrendMetric, saveTrendMetric, TREND_METRICS, TrendMetric, useLiveServer } from '@/lib/liveStats';
 import { bytesToString, ip, mbToBytes } from '@/lib/formatters';
+
+/** "78 B/s", "1.2 KiB/s", "34 MiB/s": short enough that both rates fit the narrow list column. */
+const shortRate = (bytes: number): string => {
+    const units = ['B', 'KiB', 'MiB', 'GiB'];
+    let value = Math.max(0, bytes);
+    let unit = 0;
+    while (value >= 1024 && unit < units.length - 1) {
+        value /= 1024;
+        unit++;
+    }
+
+    return `${value < 10 && unit > 0 ? value.toFixed(1) : Math.round(value)} ${units[unit]}/s`;
+};
 import GreyRowBox from '@/components/elements/GreyRowBox';
 import Spinner from '@/components/elements/Spinner';
 import classNames from 'classnames';
@@ -230,11 +243,11 @@ export default ({
         <>
             <span title={__('Download')} style={{ color: look.color }}>
                 <FontAwesomeIcon icon={faArrowDown} className={'mr-1 h-2.5 w-2.5'} />
-                {bytesToString(live!.rxRate)}/s
+                {shortRate(live!.rxRate)}
             </span>
             <span title={__('Upload')} className={'ml-2'} style={{ color: UPLOAD_COLOR }}>
                 <FontAwesomeIcon icon={faArrowUp} className={'mr-1 h-2.5 w-2.5'} />
-                {bytesToString(live!.txRate)}/s
+                {shortRate(live!.txRate)}
             </span>
         </>
     );
@@ -258,12 +271,17 @@ export default ({
                     'relative z-10 flex w-full items-center justify-between gap-2 rounded-md px-1 text-[0.7rem] leading-5 text-neutral-400 transition-colors duration-150 hover:bg-white/10 hover:text-neutral-100'
                 }
             >
-                <span className={'inline-flex items-center gap-1 whitespace-nowrap'}>
+                <span className={'inline-flex flex-none items-center gap-1 whitespace-nowrap'}>
                     <FontAwesomeIcon icon={faExchangeAlt} className={'h-2.5 w-2.5 opacity-70'} />
                     {/* The two network rates need the room in the narrow list column. */}
                     {(grid || metric !== 'network') && trendLabel}
                 </span>
-                <span className={'whitespace-nowrap tabular-nums text-neutral-200'}>{trendValue}</span>
+                {/* Never wider than the column: anything that still does not fit is cut off with an ellipsis. */}
+                <span
+                    className={'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap tabular-nums text-neutral-200'}
+                >
+                    {trendValue}
+                </span>
             </button>
             <Sparkline
                 values={showStats ? live!.history[metric] : []}
