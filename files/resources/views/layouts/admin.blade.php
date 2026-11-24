@@ -352,5 +352,90 @@
                 })
             </script>
         @show
+        {{-- A form split over several boxes has its one save button in only one of them. Move that button into a
+             bar under the whole form that floats at the bottom of the screen while the form is in view, and say
+             when anything on the page has been changed. --}}
+        <script>
+            (function () {
+                var TEXT = {
+                    hint: @json(__('Saves every section on this page')),
+                    dirty: @json(__('Unsaved changes')),
+                };
+                var forms = Array.prototype.filter.call(document.querySelectorAll('.content-wrapper form'), function (form) {
+                    return form.querySelectorAll('.box').length >= 2;
+                });
+
+                forms.forEach(function (form) {
+                    var submits = form.querySelectorAll('[type="submit"]');
+                    if (!submits.length) return;
+                    var footer = submits[0].closest('.box-footer');
+                    if (!footer) return;
+                    for (var i = 1; i < submits.length; i++) {
+                        if (submits[i].closest('.box-footer') !== footer) return;
+                    }
+
+                    var box = footer.closest('.box');
+                    var slot = document.createElement('div');
+                    var bar = document.createElement('div');
+                    var note = document.createElement('span');
+                    slot.className = 'glass-savebar-slot';
+                    bar.className = 'glass-savebar';
+                    note.className = 'glass-savebar-note';
+                    note.textContent = TEXT.hint;
+                    bar.appendChild(note);
+                    bar.appendChild(footer);
+                    slot.appendChild(bar);
+                    form.appendChild(slot);
+
+                    // A box that only held the button (e.g. Appearance) would be left empty.
+                    if (box && !box.querySelector('.box-body, .box-header, input, select, textarea')) {
+                        var column = box.parentElement;
+                        box.style.display = 'none';
+                        if (column && column.children.length === 1 && /\bcol-/.test(column.className)) column.style.display = 'none';
+                    }
+
+                    var update = function () {
+                        slot.style.minHeight = bar.offsetHeight + 'px';
+                        var r = slot.getBoundingClientRect();
+                        var f = form.getBoundingClientRect();
+                        var vh = window.innerHeight;
+                        var float = r.top + bar.offsetHeight > vh - 12 && f.top < vh - 160;
+                        bar.classList.toggle('is-floating', float);
+                        bar.style.left = float ? r.left + 'px' : '';
+                        bar.style.width = float ? r.width + 'px' : '';
+                    };
+                    var queued = false;
+                    var schedule = function () {
+                        if (queued) return;
+                        queued = true;
+                        requestAnimationFrame(function () {
+                            queued = false;
+                            update();
+                        });
+                    };
+                    // The admin layout may scroll the page or the wrapper, so listen to every scroll.
+                    document.addEventListener('scroll', schedule, true);
+                    window.addEventListener('resize', schedule);
+                    update();
+
+                    var markDirty = function () {
+                        bar.classList.add('is-dirty');
+                        note.textContent = TEXT.dirty;
+                    };
+                    // Page scripts fill in selects (select2 and friends) while loading; only count changes after that.
+                    window.addEventListener('load', function () {
+                        setTimeout(function () {
+                            if (window.jQuery) {
+                                window.jQuery(form).on('input change', markDirty);
+                            } else {
+                                form.addEventListener('input', markDirty);
+                                form.addEventListener('change', markDirty);
+                            }
+                            schedule();
+                        }, 600);
+                    });
+                });
+            })();
+        </script>
     </body>
 </html>
